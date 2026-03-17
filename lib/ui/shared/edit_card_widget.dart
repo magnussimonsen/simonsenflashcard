@@ -378,7 +378,15 @@ class _EditCardWidgetState extends State<EditCardWidget> {
   // ── build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return PopScope(
+      // When onCancel is provided (i.e. we're in a push route), intercept
+      // the back gesture and run the same "Discard changes?" logic as the
+      // Cancel button so the user never silently loses edits.
+      canPop: widget.onCancel == null || !_isDirty,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && widget.onCancel != null) _tryCancel();
+      },
+      child: Column(
       children: [
         // ── Action bar ───────────────────────────────────────────────────────
         ColoredBox(
@@ -496,6 +504,7 @@ class _EditCardWidgetState extends State<EditCardWidget> {
           ),
         ),
       ],
+      ),
     );
   }
 }

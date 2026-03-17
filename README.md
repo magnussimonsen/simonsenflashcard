@@ -13,7 +13,11 @@ See [PLANMODE.md](PLANMODE.md) for full design decisions, UI spec, and file form
 ## Running the app
 
 ```powershell
+
 # Android emulator
+# Kill it
+adb emu kill
+# Start it again
 emulator -avd Medium_Phone_API_36.1
 flutter run -d emulator-5554
 

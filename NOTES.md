@@ -2,6 +2,8 @@
 start ms-settings:developers
 
 # Android Emulator
+adb shell settings put global package_verifier_enable 0
+adb shell settings put global verifier_verify_adb_installs 0
 Install via Android Studio by adding new device
 emulator -list-avds
 emulator -avd <device_name>

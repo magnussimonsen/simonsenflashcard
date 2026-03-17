@@ -1,23 +1,31 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_selector/file_selector.dart';
 import '../../backend/deck_service.dart';
 import '../../backend/deck_session.dart';
 import '../../backend/card_entry.dart';
 import '../../backend/stats_service.dart';
+import '../../utils/path_utils.dart';
 import '../shared/card_widget.dart';
 import '../../backend/constants.dart';
 import '../shared/rating_buttons.dart';
+import '../shared/help_screen.dart';
+import '../shared/ai_prompt_screen.dart';
+import '../shared/about_dialog.dart';
 import 'deck_editor_screen.dart';
 import 'home_screen.dart';
 
 enum _DeckMenuAction {
   openDeck,
   newDeck,
+  importDeck,
   editDeck,
   saveDeck,
   saveDeckAs,
   deleteDeck,
-  restoreDefaultDecks,
+  showHelp,
+  showAiPrompt,
+  showAbout,
   srsSettings,
 }
 
@@ -79,6 +87,10 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
 
   void _onDeckMenuSelected(_DeckMenuAction action) {
     switch (action) {
+      case _DeckMenuAction.openDeck:
+        _openFromList();
+      case _DeckMenuAction.importDeck:
+        _importDeck();
       case _DeckMenuAction.editDeck:
         _openEditDeck();
       case _DeckMenuAction.newDeck:
@@ -90,15 +102,25 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         );
       case _DeckMenuAction.deleteDeck:
         _showDeleteDeckConfirm();
-      case _DeckMenuAction.restoreDefaultDecks:
-        _showRestoreDefaultDecksConfirm();
+      case _DeckMenuAction.saveDeck:
+        _saveDeck();
+      case _DeckMenuAction.saveDeckAs:
+        _saveDeckAs();
+      case _DeckMenuAction.showHelp:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const HelpScreen()),
+        );
+      case _DeckMenuAction.showAiPrompt:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AiPromptScreen()),
+        );
+      case _DeckMenuAction.showAbout:
+        showAboutAppDialog(context);
       case _DeckMenuAction.srsSettings:
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('SRS settings not yet implemented')),
-        );
-      default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${action.name} not yet implemented')),
         );
     }
   }
@@ -267,15 +289,137 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     }
   }
 
-  Future<void> _showRestoreDefaultDecksConfirm() async {
+  Future<void> _openFromList() async {
+    final root = await DeckService.getDecksRootPath();
+    final paths = await DeckService().listDecks(root);
+    if (!mounted) return;
+    if (paths.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No decks found. Import one or create a new deck.'),
+        ),
+      );
+      return;
+    }
+    final path = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Open deck'),
+        children: [
+          for (final p in paths)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, p),
+              child: Row(
+                children: [
+                  const Icon(Icons.folder, size: 20),
+                  const SizedBox(width: 8),
+                  Text(deckFolderName(p)),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+    if (path == null || !mounted) return;
+    try {
+      final session = await DeckService().loadSession(path);
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => CardSessionScreen(session: session)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not open deck: $e')));
+    }
+  }
+
+  Future<void> _importDeck() async {
+    const typeGroup = XTypeGroup(
+      label: 'Deck file',
+      extensions: ['txt', 'flashcarddeck'],
+    );
+    final file = await openFile(acceptedTypeGroups: [typeGroup]);
+    if (file == null || !mounted) return;
+
+    // .flashcarddeck = already part of an installed deck folder → warn.
+    if (file.name.toLowerCase().endsWith('.flashcarddeck')) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Deck already imported?'),
+          content: const Text(
+            'This file has the .flashcarddeck extension, which means it is '
+            'probably already part of a Simonsen Flashcard deck folder on your device.\n\n'
+            'Use "Open deck" from the menu to open an existing deck, or '
+            'select a plain .txt file to import a new deck.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // Plain .txt → validate and create the deck folder structure.
+    try {
+      final session = await DeckService().importDeckFile(file.path);
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => CardSessionScreen(session: session)),
+      );
+    } on FormatException catch (e) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Invalid deck file'),
+          content: Text(e.message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } on ArgumentError catch (e) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Cannot import deck'),
+          content: Text(e.message as String),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Import failed: $e')));
+    }
+  }
+
+  Future<void> _saveDeck() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Restore example decks?'),
-        content: const Text(
-          'This will reset all example decks to their original state, '
-          'overwriting any edits you have made to them. '
-          'Your own custom decks will not be affected.',
+        title: const Text('Save deck'),
+        content: Text(
+          'Overwrite "${widget.session.deckName}" with the current card data?',
         ),
         actions: [
           TextButton(
@@ -284,26 +428,70 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Restore'),
+            child: const Text('Save'),
           ),
         ],
       ),
     );
-    if (confirmed == true && mounted) {
-      try {
-        await DeckService().restoreDefaultDecks();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Example decks restored.')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not restore decks: $e')),
-          );
-        }
-      }
+    if (confirmed != true) return;
+    if (!mounted) return;
+    try {
+      await DeckService().saveDeck(widget.session);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('"${widget.session.deckName}" saved')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+    }
+  }
+
+  Future<void> _saveDeckAs() async {
+    final nameController = TextEditingController(text: widget.session.deckName);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Save deck as'),
+        content: TextField(
+          controller: nameController,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'New deck name'),
+          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, nameController.text.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (newName == null || newName.isEmpty) return;
+    if (!mounted) return;
+    try {
+      await DeckService().saveDeckAs(widget.session, newName);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Deck saved as "$newName"')));
+      setState(() {});
+    } on ArgumentError catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message as String)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
     }
   }
 
@@ -497,6 +685,10 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                       child: Text('New deck'),
                     ),
                     const PopupMenuItem(
+                      value: _DeckMenuAction.importDeck,
+                      child: Text('Import deck'),
+                    ),
+                    const PopupMenuItem(
                       value: _DeckMenuAction.editDeck,
                       child: Text('Edit current deck'),
                     ),
@@ -510,20 +702,30 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     ),
                     const PopupMenuDivider(),
                     const PopupMenuItem(
-                      value: _DeckMenuAction.restoreDefaultDecks,
-                      child: Text('Restore built-in decks'),
-                    ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
                       value: _DeckMenuAction.deleteDeck,
                       child: Text(
                         'Delete deck',
                         style: TextStyle(color: Colors.red),
                       ),
                     ),
+                    const PopupMenuDivider(),
                     const PopupMenuItem(
                       value: _DeckMenuAction.srsSettings,
                       child: Text('SRS settings'),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: _DeckMenuAction.showHelp,
+                      child: Text('Help'),
+                    ),
+                    const PopupMenuItem(
+                      value: _DeckMenuAction.showAiPrompt,
+                      child: Text('Use AI to generate a deck'),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: _DeckMenuAction.showAbout,
+                      child: Text('About'),
                     ),
                   ],
                 ),
@@ -642,7 +844,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
             maintainSize: true,
             maintainAnimation: true,
             maintainState: true,
-            child: RatingButtons(onRating: _rate),
+            child: SafeArea(top: false, child: RatingButtons(onRating: _rate)),
           ),
         ],
       ),
