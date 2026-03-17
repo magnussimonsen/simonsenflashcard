@@ -8,6 +8,7 @@ import '../shared/card_widget.dart';
 import '../../backend/constants.dart';
 import '../shared/rating_buttons.dart';
 import 'deck_editor_screen.dart';
+import 'home_screen.dart';
 
 enum _DeckMenuAction {
   openDeck,
@@ -251,7 +252,11 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     if (confirmed == true && mounted) {
       try {
         await DeckService().deleteDeck(widget.session.folderPath);
-        if (mounted) Navigator.pop(context);
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(

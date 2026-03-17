@@ -1,6 +1,6 @@
 {
-    "name": "flashcard_app",
-    "short_name": "flashcard_app",
+    "name": "Simonsen Flashcard",
+    "short_name": "Simonsen Flashcard",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

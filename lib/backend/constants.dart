@@ -2,6 +2,9 @@
 // This structure make it easy to change things app title globaly
 const String appTitle = 'Simonsen Flashcard - The easy to use flashcard app';
 
+/// The folder name of the example deck that is pre-selected on first launch.
+const String defaultDeckName = 'Basic French Example';
+
 /// Whether images are shown by default when starting a card session.
 const bool defaultShowImage = true;
 

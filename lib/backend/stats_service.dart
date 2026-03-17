@@ -55,58 +55,35 @@ class StatsService {
     final cardStats = cache[cardTitle] ?? CardStats(cardTitle: cardTitle);
     final now = DateTime.now();
     cardStats.lastReviewed = now;
-    final int daysUntilDue;
-    switch (rating) {
-      case CardRating.again:
-        cardStats.again++;
-        daysUntilDue = 1;
-      case CardRating.hard:
-        cardStats.hard++;
-        daysUntilDue = 3;
-      case CardRating.good:
-        cardStats.good++;
-        daysUntilDue = 7;
-      case CardRating.easy:
-        cardStats.easy++;
-        daysUntilDue = 14;
-    }
-    cardStats.nextDue = now.add(Duration(days: daysUntilDue));
+    _applyRating(cardStats, rating);
+    cardStats.nextDue = now.add(Duration(days: _daysUntilDue(rating)));
     cache[cardTitle] = cardStats;
     await saveStats(deckFolderPath, cache);
   }
 
-  /// Record a rating for a single card and persist it.
-  Future<void> recordRating(
-    String deckFolderPath,
-    String cardTitle,
-    CardRating rating,
-  ) async {
-    final stats = await loadStats(deckFolderPath);
-    final cardStats = stats[cardTitle] ?? CardStats(cardTitle: cardTitle);
-
-    final now = DateTime.now();
-    cardStats.lastReviewed = now;
-
-    final int daysUntilDue;
+  /// Increments the appropriate counter on [stats] for [rating].
+  static void _applyRating(CardStats stats, CardRating rating) {
     switch (rating) {
       case CardRating.again:
-        cardStats.again++;
-        daysUntilDue = 1;
+        stats.again++;
       case CardRating.hard:
-        cardStats.hard++;
-        daysUntilDue = 3;
+        stats.hard++;
       case CardRating.good:
-        cardStats.good++;
-        daysUntilDue = 7;
+        stats.good++;
       case CardRating.easy:
-        cardStats.easy++;
-        daysUntilDue = 14;
+        stats.easy++;
     }
+  }
 
-    cardStats.nextDue = now.add(Duration(days: daysUntilDue));
-    stats[cardTitle] = cardStats;
-
-    await saveStats(deckFolderPath, stats);
+  /// Returns the number of days until the next review for a given [rating].
+  /// These are fixed intervals; adaptive SRS (ease factor) is not yet implemented.
+  static int _daysUntilDue(CardRating rating) {
+    return switch (rating) {
+      CardRating.again => 1,
+      CardRating.hard => 3,
+      CardRating.good => 7,
+      CardRating.easy => 14,
+    };
   }
 
   Map<String, CardStats> _parseStatsYaml(String content) {

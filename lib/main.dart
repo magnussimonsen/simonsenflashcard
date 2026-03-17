@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'backend/constants.dart';
 import 'backend/deck_service.dart';
 import 'backend/deck_session.dart';
 import 'ui/desktop/card_session_screen.dart' as desktop;
@@ -51,9 +52,9 @@ class _StartupScreenState extends State<_StartupScreen> {
     final decks = await service.listDecks(root);
 
     DeckSession? session;
-    // Prefer Basic French Example as the default deck on first launch.
+    // Prefer the default example deck on first launch.
     final basicFrench = decks.firstWhere(
-      (p) => p.replaceAll('\\', '/').endsWith('/Basic French Example'),
+      (p) => p.replaceAll('\\', '/').endsWith('/$defaultDeckName'),
       orElse: () => decks.isNotEmpty ? decks.first : '',
     );
     if (basicFrench.isNotEmpty) {

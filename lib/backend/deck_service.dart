@@ -1,24 +1,17 @@
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle, AssetManifest;
 import 'package:path_provider/path_provider.dart';
-import 'card_model.dart';
 import 'card_entry.dart';
+import 'deck_codec.dart';
 import 'deck_session.dart';
 import 'stats_service.dart';
-
-class _DeckContents {
-  final String deckName;
-  final String mode;
-  final List<CardModel> cards;
-  const _DeckContents({
-    required this.deckName,
-    required this.mode,
-    required this.cards,
-  });
-}
+import '../utils/path_utils.dart';
 
 /// Handles loading and saving decks from the file system.
-/// Each deck lives in its own folder: `decks/<deck_name>/deck.txt`
+/// Each deck lives in its own folder: `decks/<deck_name>/deck.flashcarddeck`
+///
+/// Parsing and serialisation of the deck file format live in [deck_codec.dart].
+/// File-path helpers live in [path_utils.dart].
 class DeckService {
   /// Returns the root folder where Simonsen Flashcard stores all decks.
   /// On Windows/macOS/Linux this is `Documents/Simonsen Flashcard/decks/`.
@@ -58,21 +51,17 @@ class DeckService {
     final filePath = await _resolveDeckFilePath(deckFolderPath);
     final file = File(filePath);
     final content = await file.readAsString();
-    final parsed = _parseDeck(content);
+    final parsed = parseDeck(content);
     final statsMap = await StatsService().loadStats(deckFolderPath);
     final entries = [
-      for (int i = 0; i < parsed.cards.length; i++)
-        CardEntry(
-          // id: i,
-          card: parsed.cards[i],
-          stats: statsMap[parsed.cards[i].title],
-        ),
+      for (final card in parsed.cards)
+        CardEntry(card: card, stats: statsMap[card.title]),
     ];
     return DeckSession(
       folderPath: deckFolderPath,
       deckName: parsed.deckName.isNotEmpty
           ? parsed.deckName
-          : _folderName(deckFolderPath),
+          : deckFolderName(deckFolderPath),
       mode: parsed.mode,
       entries: entries,
       statsCache: statsMap,
@@ -83,7 +72,7 @@ class DeckService {
   Future<void> saveDeck(DeckSession session) async {
     final file = File('${session.folderPath}/$_deckFileName');
     await file.writeAsString(
-      _buildDeckTxt(
+      buildDeckText(
         session.deckName,
         session.mode,
         session.activeEntries.map((e) => e.card).toList(),
@@ -154,126 +143,6 @@ class DeckService {
       }
     }
     return paths;
-  }
-
-  String _folderName(String path) =>
-      path.replaceAll('\\', '/').split('/').where((s) => s.isNotEmpty).last;
-
-  _DeckContents _parseDeck(String content) {
-    final segments = _splitOnSeparator(content);
-    var deckName = '';
-    var mode = 'Normal';
-    final cards = <CardModel>[];
-
-    if (segments.isNotEmpty) {
-      for (final line in segments[0].split('\n')) {
-        if (line.startsWith('Deckname:')) {
-          deckName = line.substring('Deckname:'.length).trim();
-        } else if (line.startsWith('Available modes:')) {
-          mode = line.substring('Available modes:'.length).trim();
-        }
-      }
-    }
-
-    for (int i = 1; i < segments.length; i++) {
-      final lines = segments[i]
-          .split('\n')
-          .map((l) => l.trimRight())
-          .where((l) => l.isNotEmpty)
-          .toList();
-      if (lines.isEmpty) continue;
-      final card = _parseCardBlock(lines);
-      if (card != null) cards.add(card);
-    }
-
-    return _DeckContents(deckName: deckName, mode: mode, cards: cards);
-  }
-
-  List<String> _splitOnSeparator(String content) {
-    final lines = content
-        .replaceAll('\r\n', '\n')
-        .replaceAll('\r', '\n')
-        .split('\n');
-    final segments = <String>[];
-    final buf = StringBuffer();
-    for (final line in lines) {
-      if (line.trim() == '---') {
-        segments.add(buf.toString());
-        buf.clear();
-      } else {
-        buf.write('$line\n');
-      }
-    }
-    segments.add(buf.toString());
-    return segments;
-  }
-
-  CardModel? _parseCardBlock(List<String> lines) {
-    final fields = <String, String>{};
-    final frontOptions = <String>[];
-    final backOptions = <String>[];
-
-    for (final line in lines) {
-      final colonIdx = line.indexOf(':');
-      if (colonIdx < 0) continue;
-      final key = line.substring(0, colonIdx).trim();
-      final value = line.substring(colonIdx + 1).trim();
-
-      if (key.toLowerCase().startsWith('front option')) {
-        final idx = int.tryParse(key.substring('Front option'.length).trim());
-        if (idx != null && idx > 0) {
-          while (frontOptions.length < idx) {
-            frontOptions.add('');
-          }
-          frontOptions[idx - 1] = value;
-        }
-      } else if (key.toLowerCase().startsWith('back option')) {
-        final idx = int.tryParse(key.substring('Back option'.length).trim());
-        if (idx != null && idx > 0) {
-          while (backOptions.length < idx) {
-            backOptions.add('');
-          }
-          backOptions[idx - 1] = value;
-        }
-      } else {
-        fields[key] = value;
-      }
-    }
-
-    final title = fields['Cardtitle'];
-    final frontQuestion = fields['Front question'];
-    if (title == null || frontQuestion == null) return null;
-
-    String? frontAudio = fields['Front audio'];
-    String? frontImage = fields['Front image'];
-    String? backAudio = fields['Back audio'];
-    String? backImage = fields['Back image'];
-    if (frontAudio == 'none' || frontAudio == '') frontAudio = null;
-    if (frontImage == 'none' || frontImage == '') frontImage = null;
-    if (backAudio == 'none' || backAudio == '') backAudio = null;
-    if (backImage == 'none' || backImage == '') backImage = null;
-
-    return CardModel(
-      title: title,
-      frontQuestion: frontQuestion,
-      frontLatexString: fields['Front latex string'] ?? '',
-      frontIpaString: fields['Front IPA string'] == 'none'
-          ? ''
-          : (fields['Front IPA string'] ?? ''),
-      frontImage: frontImage,
-      frontAudio: frontAudio,
-      frontOptions: List.unmodifiable(frontOptions),
-      backAnswer: fields['Back answer'] == 'none'
-          ? ''
-          : (fields['Back answer'] ?? ''),
-      backLatexString: fields['Back latex string'] ?? '',
-      backIpaString: fields['Back IPA string'] == 'none'
-          ? ''
-          : (fields['Back IPA string'] ?? ''),
-      backImage: backImage,
-      backAudio: backAudio,
-      backOptions: List.unmodifiable(backOptions),
-    );
   }
 
   /// Create a new empty deck on disk and return its [DeckSession].
@@ -395,7 +264,7 @@ class DeckService {
   /// Throws [ArgumentError] if a deck with that name already exists.
   Future<DeckSession> importDeckFile(String filePath) async {
     final content = await File(filePath).readAsString();
-    final segments = _splitOnSeparator(content);
+    final segments = splitOnDeckSeparator(content);
 
     // ── Validate header ──────────────────────────────────────────────────────
     String deckName = '';
@@ -447,7 +316,7 @@ class DeckService {
       }
       if (!hasFrontQ) {
         throw FormatException(
-          'Card ${i + 1} ("${_cardTitle(lines)}") is missing "Front question:".\n'
+          'Card ${i + 1} ("${cardTitleFromBlock(lines)}") is missing "Front question:".\n'
           'Every card must have a non-empty Front question.',
         );
       }
@@ -476,43 +345,5 @@ class DeckService {
     await File('${folder.path}/$_deckFileName').writeAsString(content);
 
     return loadSession(folder.path);
-  }
-
-  String _cardTitle(List<String> lines) {
-    for (final l in lines) {
-      if (l.startsWith('Cardtitle:')) {
-        return l.substring('Cardtitle:'.length).trim();
-      }
-    }
-    return '?';
-  }
-
-  String _buildDeckTxt(String deckName, String mode, List<CardModel> cards) {
-    final buf = StringBuffer();
-    buf.writeln('Deckname: $deckName');
-    buf.writeln('Available modes: $mode');
-    if (cards.isEmpty) return buf.toString();
-    for (final card in cards) {
-      buf.writeln('---');
-      buf.writeln('Cardtitle: ${card.title}');
-      buf.writeln('Front question: ${card.frontQuestion}');
-      buf.writeln('Front latex string: ${card.frontLatexString}');
-      buf.writeln('Front IPA string: ${card.frontIpaString}');
-      buf.writeln("Front image: ${card.frontImage ?? ''}");
-      buf.writeln("Front audio: ${card.frontAudio ?? ''}");
-      for (int i = 0; i < card.frontOptions.length; i++) {
-        buf.writeln('Front option${i + 1}: ${card.frontOptions[i]}');
-      }
-      buf.writeln();
-      buf.writeln('Back answer: ${card.backAnswer}');
-      buf.writeln('Back latex string: ${card.backLatexString}');
-      buf.writeln('Back IPA string: ${card.backIpaString}');
-      buf.writeln("Back image: ${card.backImage ?? ''}");
-      buf.writeln("Back audio: ${card.backAudio ?? ''}");
-      for (int i = 0; i < card.backOptions.length; i++) {
-        buf.writeln('Back option${i + 1}: ${card.backOptions[i]}');
-      }
-    }
-    return buf.toString();
   }
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../backend/card_model.dart';
 
 /// A standalone form widget for creating or editing a single [CardModel].
@@ -211,6 +212,17 @@ class _EditCardWidgetState extends State<EditCardWidget> {
     if (discard == true && mounted) widget.onCancel?.call();
   }
 
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not open $url')));
+      }
+    }
+  }
+
   Future<void> _pickFile({
     required List<XTypeGroup> typeGroups,
     required TextEditingController ctrl,
@@ -263,6 +275,10 @@ class _EditCardWidgetState extends State<EditCardWidget> {
     required List<XTypeGroup> typeGroups,
     required String tooltip,
     required String subFolder, // 'images' or 'audio'
+    String? webUrl,
+    String? webTooltip,
+    IconData? webIcon,
+    Color? webIconColor,
   }) {
     final hasFile = ctrl.text.trim().isNotEmpty;
     return Padding(
@@ -292,6 +308,19 @@ class _EditCardWidgetState extends State<EditCardWidget> {
               child: Text(hasFile ? 'Change' : 'Add'),
             ),
           ),
+          if (webUrl != null) ...[
+            const SizedBox(width: 4),
+            Tooltip(
+              message: webTooltip ?? webUrl,
+              child: IconButton(
+                icon: Icon(
+                  webIcon ?? Icons.open_in_browser,
+                  color: webIconColor,
+                ),
+                onPressed: () => _launchUrl(webUrl),
+              ),
+            ),
+          ],
           if (hasFile) ...[
             const SizedBox(width: 4),
             IconButton(
@@ -412,6 +441,10 @@ class _EditCardWidgetState extends State<EditCardWidget> {
                   typeGroups: const [_imageTypeGroup],
                   tooltip: 'Allowed formats: jpg, jpeg, png, gif, webp',
                   subFolder: 'images/front',
+                  webUrl: 'https://images.google.com/',
+                  webTooltip: 'Search Google Images',
+                  webIcon: Icons.image_search,
+                  webIconColor: Colors.blue,
                 ),
                 _fileField(
                   label: 'Front audio',
@@ -419,6 +452,10 @@ class _EditCardWidgetState extends State<EditCardWidget> {
                   typeGroups: const [_audioTypeGroup],
                   tooltip: 'Allowed formats: mp3, wav, ogg, m4a',
                   subFolder: 'audio/front',
+                  webUrl: 'https://soundoftext.com/',
+                  webTooltip: 'Generate audio at soundoftext.com',
+                  webIcon: Icons.headphones,
+                  webIconColor: Colors.indigo,
                 ),
                 _sectionHeader('Front options (multiple choice)'),
                 _optionsList(_frontOptionCtrs, 'Front'),
@@ -435,6 +472,10 @@ class _EditCardWidgetState extends State<EditCardWidget> {
                   typeGroups: const [_imageTypeGroup],
                   tooltip: 'Allowed formats: jpg, jpeg, png, gif, webp',
                   subFolder: 'images/back',
+                  webUrl: 'https://images.google.com/',
+                  webTooltip: 'Search Google Images',
+                  webIcon: Icons.image_search,
+                  webIconColor: Colors.blue,
                 ),
                 _fileField(
                   label: 'Back audio',
@@ -442,6 +483,10 @@ class _EditCardWidgetState extends State<EditCardWidget> {
                   typeGroups: const [_audioTypeGroup],
                   tooltip: 'Allowed formats: mp3, wav, ogg, m4a',
                   subFolder: 'audio/back',
+                  webUrl: 'https://soundoftext.com/',
+                  webTooltip: 'Generate audio at soundoftext.com',
+                  webIcon: Icons.headphones,
+                  webIconColor: Colors.indigo,
                 ),
                 _sectionHeader('Back options (multiple choice)'),
                 _optionsList(_backOptionCtrs, 'Back'),

@@ -6,6 +6,7 @@ import '../../backend/deck_service.dart';
 import '../../backend/deck_session.dart';
 import '../../backend/card_entry.dart';
 import '../../backend/stats_service.dart';
+import '../../utils/path_utils.dart';
 import '../shared/card_widget.dart';
 import '../../backend/constants.dart';
 import '../shared/rating_buttons.dart';
@@ -185,13 +186,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                   children: [
                     const Icon(Icons.folder, size: 20),
                     const SizedBox(width: 8),
-                    Text(
-                      p
-                          .replaceAll('\\', '/')
-                          .split('/')
-                          .where((s) => s.isNotEmpty)
-                          .last,
-                    ),
+                    Text(deckFolderName(p)),
                   ],
                 ),
               ),
@@ -423,7 +418,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     if (confirmed == true && mounted) {
       try {
         await DeckService().deleteDeck(widget.session.folderPath);
-        if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+        if (mounted) await _openFromList();
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(
