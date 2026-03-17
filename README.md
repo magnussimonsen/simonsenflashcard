@@ -9,23 +9,29 @@ See [PLANMODE.md](PLANMODE.md) for full design decisions, UI spec, and file form
 - Flutter (Dart)
 - Targets: Android, Windows desktop
 - UI is platform-specific per target; backend is shared across all platforms
+- Key packages: `audioplayers`, `file_selector`, `path_provider`, `flutter_math_fork`, `url_launcher`, `uuid`
 
 ## Running the app
 
 ```powershell
+# Android emulator — disable Play Protect warning (run once)
+adb shell settings put global package_verifier_enable 0
+adb shell settings put global verifier_verify_adb_installs 0
 
-# Android emulator
-# Kill it
-adb emu kill
-# Start it again
-emulator -avd Medium_Phone_API_36.1
+# Start emulator, then run app
+emulator -avd Pixel_7
 flutter run -d emulator-5554
+
+# Hot reload (keeps state) / hot restart (clears state) while flutter run is active
+# r = hot reload   R = hot restart   q = quit
 
 # Windows desktop
 flutter run -d windows
 ```
 
 > **Note:** Windows desktop requires Developer Mode enabled in system settings (`start ms-settings:developers`).
+>
+> **Note:** A full `flutter run` is only needed after changing native files (e.g. `AndroidManifest.xml`) or adding packages. For Dart-only changes use hot reload (`r`) instead.
 
 ## Project structure
 
@@ -36,31 +42,36 @@ lib/
     card_model.dart                  # CardModel data class
     card_entry.dart                  # CardEntry: wraps CardModel with id, isDeleted, history
     deck_session.dart                # DeckSession: full in-memory deck (one at a time)
-    deck_service.dart                # load/save deck files; loadSession() returns DeckSession
+    deck_codec.dart                  # deck file parsing and serialisation (no I/O)
+    deck_service.dart                # load/save/delete/import deck files from disk
     stats_service.dart               # read/write review stats (deck.stats.yaml)
-    constants.dart                   # shared constants (e.g. app title)
+    constants.dart                   # shared constants (app title, default settings)
+  utils/
+    path_utils.dart                  # deckFolderName() helper (shared across UI layers)
   ui/
     android/
-      home_screen.dart
-      card_session_screen.dart
-      deck_editor_screen.dart
+      home_screen.dart               # deck list → open/create deck
+      card_session_screen.dart       # card review + hamburger menu
+      deck_editor_screen.dart        # add/edit/delete cards in a deck
     desktop/
       home_screen.dart               # folder picker → opens deck
       card_session_screen.dart       # keyboard shortcuts + show/hide image/options toggles
-      deck_editor_screen.dart
+      deck_editor_screen.dart        # add/edit/delete cards in a deck
     shared/
       card_widget.dart               # card flip widget (used by both platforms)
+      edit_card_widget.dart          # single-card form with dirty-state guard
       rating_buttons.dart            # Again / Hard / Good / Easy buttons
-decks/                               # deck folders (not in source control)
-  my_deck/
-    deck.txt
-    deck.stats.yaml
-    assets/
-      images/
-      audio/
+      help_screen.dart               # in-app help
+      ai_prompt_screen.dart          # AI deck generation prompt helper
+      about_dialog.dart              # About dialog
+      key_concepts_dialog.dart       # key concepts reference
+assets/
+  decks/                             # bundled example decks (copied to device on first launch)
+    Basic French Example/
+    French numbers 0–20 Example/
 ```
 
-The `backend/` layer has no Flutter UI imports. All UI screens call `backend/` services only — never the file system directly.
+The `backend/` layer has no Flutter UI imports. All UI screens call `backend/` services only — never the file system directly. Parsing logic lives in `deck_codec.dart`, keeping `deck_service.dart` focused on disk I/O only.
 
 ## In-memory data model
 
@@ -75,63 +86,87 @@ Cards are only permanently removed or updated when the user explicitly saves the
 
 ## Deck file format
 
-Each deck lives in its own folder. The folder name is the deck name (snake_case). All assets are kept in subfolders so decks are fully self-contained and portable.
+Each deck lives in its own folder. All assets are kept in subfolders so decks are fully self-contained and portable.
 
 ```
 decks/
-  my_deck/
-    deck.txt              # card definitions
+  My Deck/
+    deck.flashcarddeck    # card definitions
     deck.stats.yaml       # review statistics (auto-generated)
     assets/
       images/
+        front/
+        back/
       audio/
+        front/
+        back/
 ```
 
-`image` and `audio` fields use just the filename — the app resolves the full path from the deck's `assets/` subfolder automatically.
+`image` and `audio` fields store a relative path within `assets/images/` or `assets/audio/` respectively (e.g. `back/chien.mp3`).
 
-**deck.txt format:**
+**deck.flashcarddeck format:**
 
 ```
 Deckname: My Deck
 Available modes: Normal
 
+---
 Cardtitle: Dog
 Front question: Dog
 Back answer: Chien
-Latex string:
+Front latex string:
+Back latex string:
 Front IPA string: /dɔːɡ/
 Back IPA string: /ʃjɛ̃/
-Audio: chien.mp3
-Image: dog.jpg
-Option1: chien
-Option2: chat
-Option3: cheval
+Front audio:
+Back audio: back/chien.mp3
+Front image:
+Back image: back/dog.jpg
+Front option 1: chien
+Front option 2: chat
+Front option 3: cheval
 ```
 
-| Field              | Description                                              |
-| ------------------ | -------------------------------------------------------- |
-| `Cardtitle`        | Unique identifier for the card                           |
-| `Front question`   | Text shown on the front of the card                      |
-| `Back answer`      | Primary answer shown on the back                         |
-| `Latex string`     | Optional LaTeX expression (front)                        |
-| `Front IPA string` | IPA transcription for the front word                     |
-| `Back IPA string`  | IPA transcription for the back/answer word               |
-| `Audio`            | Audio filename (in `assets/audio/`), or `none`           |
-| `Image`            | Image filename (in `assets/images/`), or `none`          |
-| `Option1..N`       | Multiple-choice options (shown on front when toggled on) |
+| Field              | Description                                                      |
+| ------------------ | ---------------------------------------------------------------- |
+| `Cardtitle`        | Unique identifier for the card                                   |
+| `Front question`   | Text shown on the front of the card                              |
+| `Back answer`      | Primary answer shown on the back                                 |
+| `Front/Back latex string` | Optional LaTeX expression                                 |
+| `Front/Back IPA string`   | IPA transcription                                         |
+| `Front/Back audio` | Relative path inside `assets/audio/` (e.g. `back/word.mp3`)     |
+| `Front/Back image` | Relative path inside `assets/images/` (e.g. `back/dog.jpg`)     |
+| `Front/Back option N` | Multiple-choice options shown as chips when toggled on       |
 
-Use `none` or leave blank for unused fields.
+Use `none` or leave blank for unused fields. Cards are separated by a line containing only `---`.
 
-## Desktop UI
+## Hamburger menu (both platforms)
 
-- **Open deck** button opens a native folder picker
-- **Top bar** shows deck name, card title, and progress (e.g. "3 of 5")
-- **Show/hide image** and **show/hide options** icon buttons appear when the current card has image/options
-- Options (Option1, Option2, …) are shown on the **front** of the card as chips
-- After flipping, the back shows `Back answer` + `Back IPA string`
-- **Hamburger menu (≡):** deck management (open, new, edit, save, delete)
-- **Edit-note icon (long-press):** card management (add, edit, delete current card) with confirm dialog
+| Item | Description |
+| ---- | ----------- |
+| Open deck | Pick from all available decks |
+| New deck | Create a blank deck |
+| Import deck | Import a `.txt` deck file |
+| Edit current deck | Open the deck editor |
+| Save deck | Overwrite current deck on disk |
+| Save deck as | Save a copy under a new name |
+| Delete deck | Permanently delete the current deck |
+| SRS settings | (not yet implemented) |
+| Help | In-app help screen |
+| Use AI to generate a deck | AI prompt helper |
+| About | App version info |
+
+## Desktop UI extras
+
 - **Keyboard shortcuts:** `Space` = flip · `1` = Again · `2` = Hard · `3` = Good · `4` = Easy
+- **Edit-note icon:** opens deck editor directly on the current card
+- **Session mode selector:** Review / Session / Crammer modes (crammer/session not yet fully implemented)
+- **Show/hide image** and **show/hide options** icon buttons in the top bar
+
+## Card editor
+
+- Link buttons open **Google Images** (for image fields) and **soundoftext.com** (for audio fields) in the browser
+- Back gesture on Android shows a **"Discard changes?"** dialog if the card has been edited
 
 ## Review statistics
 
