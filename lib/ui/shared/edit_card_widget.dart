@@ -387,123 +387,123 @@ class _EditCardWidgetState extends State<EditCardWidget> {
         if (!didPop && widget.onCancel != null) _tryCancel();
       },
       child: Column(
-      children: [
-        // ── Action bar ───────────────────────────────────────────────────────
-        ColoredBox(
-          color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (widget.onCancel != null) ...[
-                  TextButton(
-                    onPressed: _tryCancel,
-                    child: const Text('Cancel'),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                FilledButton.icon(
-                  onPressed: _save,
-                  icon: const Icon(Icons.save),
-                  label: const Text('Save card'),
-                ),
-                if (widget.onSaveAll != null) ...[
-                  const SizedBox(width: 8),
+        children: [
+          // ── Action bar ───────────────────────────────────────────────────────
+          ColoredBox(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (widget.onCancel != null) ...[
+                    TextButton(
+                      onPressed: _tryCancel,
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   FilledButton.icon(
-                    onPressed: _saveAll,
-                    icon: const Icon(Icons.save_as),
-                    label: const Text('Save deck'),
+                    onPressed: _save,
+                    icon: const Icon(Icons.save),
+                    label: const Text('Save card'),
                   ),
+                  if (widget.onSaveAll != null) ...[
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      onPressed: _saveAll,
+                      icon: const Icon(Icons.save_as),
+                      label: const Text('Save deck'),
+                    ),
+                  ],
+                  if (widget.onNewCard != null) ...[
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      onPressed: widget.onNewCard,
+                      icon: const Icon(Icons.add),
+                      label: const Text('New card'),
+                    ),
+                  ],
                 ],
-                if (widget.onNewCard != null) ...[
-                  const SizedBox(width: 8),
-                  FilledButton.icon(
-                    onPressed: widget.onNewCard,
-                    icon: const Icon(Icons.add),
-                    label: const Text('New card'),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _field('Card title', _titleCtrl),
-                const Divider(),
+          const Divider(height: 1),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _field('Card title', _titleCtrl),
+                  const Divider(),
 
-                // ── Front ───────────────────────────────────────────────────
-                _sectionHeader('Front'),
-                _field('Front question', _frontQuestionCtrl, maxLines: 3),
-                _field('Front IPA', _frontIpaCtrl),
-                _field('Front LaTeX', _frontLatexCtrl),
-                _fileField(
-                  label: 'Front image',
-                  ctrl: _frontImageCtrl,
-                  typeGroups: const [_imageTypeGroup],
-                  tooltip: 'Allowed formats: jpg, jpeg, png, gif, webp',
-                  subFolder: 'images/front',
-                  webUrl: 'https://images.google.com/',
-                  webTooltip: 'Search Google Images',
-                  webIcon: Icons.image_search,
-                  webIconColor: Colors.blue,
-                ),
-                _fileField(
-                  label: 'Front audio',
-                  ctrl: _frontAudioCtrl,
-                  typeGroups: const [_audioTypeGroup],
-                  tooltip: 'Allowed formats: mp3, wav, ogg, m4a',
-                  subFolder: 'audio/front',
-                  webUrl: 'https://soundoftext.com/',
-                  webTooltip: 'Generate audio at soundoftext.com',
-                  webIcon: Icons.headphones,
-                  webIconColor: Colors.indigo,
-                ),
-                _sectionHeader('Front options (multiple choice)'),
-                _optionsList(_frontOptionCtrs, 'Front'),
-                const Divider(),
+                  // ── Front ───────────────────────────────────────────────────
+                  _sectionHeader('Front'),
+                  _field('Front question', _frontQuestionCtrl, maxLines: 3),
+                  _field('Front IPA', _frontIpaCtrl),
+                  _field('Front LaTeX', _frontLatexCtrl),
+                  _fileField(
+                    label: 'Front image',
+                    ctrl: _frontImageCtrl,
+                    typeGroups: const [_imageTypeGroup],
+                    tooltip: 'Allowed formats: jpg, jpeg, png, gif, webp',
+                    subFolder: 'images/front',
+                    webUrl: 'https://images.google.com/',
+                    webTooltip: 'Search Google Images',
+                    webIcon: Icons.image_search,
+                    webIconColor: Colors.blue,
+                  ),
+                  _fileField(
+                    label: 'Front audio',
+                    ctrl: _frontAudioCtrl,
+                    typeGroups: const [_audioTypeGroup],
+                    tooltip: 'Allowed formats: mp3, wav, ogg, m4a',
+                    subFolder: 'audio/front',
+                    webUrl: 'https://soundoftext.com/',
+                    webTooltip: 'Generate audio at soundoftext.com',
+                    webIcon: Icons.headphones,
+                    webIconColor: Colors.indigo,
+                  ),
+                  _sectionHeader('Front options (multiple choice)'),
+                  _optionsList(_frontOptionCtrs, 'Front'),
+                  const Divider(),
 
-                // ── Back ────────────────────────────────────────────────────
-                _sectionHeader('Back'),
-                _field('Back answer', _backAnswerCtrl, maxLines: 3),
-                _field('Back IPA', _backIpaCtrl),
-                _field('Back LaTeX', _backLatexCtrl),
-                _fileField(
-                  label: 'Back image',
-                  ctrl: _backImageCtrl,
-                  typeGroups: const [_imageTypeGroup],
-                  tooltip: 'Allowed formats: jpg, jpeg, png, gif, webp',
-                  subFolder: 'images/back',
-                  webUrl: 'https://images.google.com/',
-                  webTooltip: 'Search Google Images',
-                  webIcon: Icons.image_search,
-                  webIconColor: Colors.blue,
-                ),
-                _fileField(
-                  label: 'Back audio',
-                  ctrl: _backAudioCtrl,
-                  typeGroups: const [_audioTypeGroup],
-                  tooltip: 'Allowed formats: mp3, wav, ogg, m4a',
-                  subFolder: 'audio/back',
-                  webUrl: 'https://soundoftext.com/',
-                  webTooltip: 'Generate audio at soundoftext.com',
-                  webIcon: Icons.headphones,
-                  webIconColor: Colors.indigo,
-                ),
-                _sectionHeader('Back options (multiple choice)'),
-                _optionsList(_backOptionCtrs, 'Back'),
-                const SizedBox(height: 16),
-              ],
+                  // ── Back ────────────────────────────────────────────────────
+                  _sectionHeader('Back'),
+                  _field('Back answer', _backAnswerCtrl, maxLines: 3),
+                  _field('Back IPA', _backIpaCtrl),
+                  _field('Back LaTeX', _backLatexCtrl),
+                  _fileField(
+                    label: 'Back image',
+                    ctrl: _backImageCtrl,
+                    typeGroups: const [_imageTypeGroup],
+                    tooltip: 'Allowed formats: jpg, jpeg, png, gif, webp',
+                    subFolder: 'images/back',
+                    webUrl: 'https://images.google.com/',
+                    webTooltip: 'Search Google Images',
+                    webIcon: Icons.image_search,
+                    webIconColor: Colors.blue,
+                  ),
+                  _fileField(
+                    label: 'Back audio',
+                    ctrl: _backAudioCtrl,
+                    typeGroups: const [_audioTypeGroup],
+                    tooltip: 'Allowed formats: mp3, wav, ogg, m4a',
+                    subFolder: 'audio/back',
+                    webUrl: 'https://soundoftext.com/',
+                    webTooltip: 'Generate audio at soundoftext.com',
+                    webIcon: Icons.headphones,
+                    webIconColor: Colors.indigo,
+                  ),
+                  _sectionHeader('Back options (multiple choice)'),
+                  _optionsList(_backOptionCtrs, 'Back'),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
       ),
     );
   }
