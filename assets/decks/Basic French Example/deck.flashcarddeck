@@ -1,0 +1,97 @@
+﻿Deckname: Basic French Example
+Available modes: Normal
+---
+Cardtitle: Dog
+Front question: Dog
+Front latex string: 
+Front IPA string: /dɔːɡ/
+Front image: front/dog.jpg
+Front audio: 
+Front option1: chien
+Front option2: chat
+Front option3: cheval
+
+Back answer: Chien
+Back latex string: 
+Back IPA string: /ʃjɛ̃/
+Back image: front/dog.jpg
+Back audio: back/chien.mp3
+Back option1: dog
+Back option2: cat
+Back option3: horse
+---
+Cardtitle: Cat
+Front question: Cat
+Front latex string: 
+Front IPA string: /kæt/
+Front image: front/cat.jpg
+Front audio: 
+Front option1: chat
+Front option2: chien
+Front option3: poisson
+
+Back answer: Chat
+Back latex string: 
+Back IPA string: /ʃa/
+Back image: front/cat.jpg
+Back audio: back/chat.mp3
+Back option1: cat
+Back option2: dog
+Back option3: fish
+---
+Cardtitle: Horse
+Front question: Horse
+Front latex string: 
+Front IPA string: /hɔːrs/
+Front image: front/horse.jpg
+Front audio: 
+Front option1: cheval
+Front option2: poisson
+Front option3: cœur
+
+Back answer: Cheval
+Back latex string: 
+Back IPA string: /ʃəval/
+Back image: front/horse.jpg
+Back audio: back/cheval.mp3
+Back option1: horse
+Back option2: fish
+Back option3: heart
+---
+Cardtitle: Fish
+Front question: Fish
+Front latex string: 
+Front IPA string: /fɪʃ/
+Front image: front/fish.jpg
+Front audio: 
+Front option1: poisson
+Front option2: cheval
+Front option3: chat
+
+Back answer: Poisson
+Back latex string: 
+Back IPA string: /pwasɔ̃/
+Back image: front/fish.jpg
+Back audio: back/poisson.mp3
+Back option1: fish
+Back option2: horse
+Back option3: cat
+---
+Cardtitle: Heart
+Front question: Heart
+Front latex string: 
+Front IPA string: /hɑːrt/
+Front image: front/heart.png
+Front audio: 
+Front option1: cœur
+Front option2: cheval
+Front option3: poisson
+
+Back answer: Cœur
+Back latex string: 
+Back IPA string: /kœʁ/
+Back image: front/heart.png
+Back audio: back/coeur.mp3
+Back option1: heart
+Back option2: horse
+Back option3: fish

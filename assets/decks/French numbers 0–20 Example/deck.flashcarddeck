@@ -1,0 +1,275 @@
+﻿Deckname: French numbers 0–20 Example
+Available modes: Normal
+---
+Cardtitle: 0 – zéro
+Front question: 0
+Front latex string: 
+Front IPA string: 
+Front image: front/zero.png
+Front audio: 
+
+Back answer: zéro
+Back latex string: 
+Back IPA string: /zeʁo/
+Back image: front/zero.png
+Back audio: back/zéro.mp3
+---
+Cardtitle: 1 – un
+Front question: 1
+Front latex string: 
+Front IPA string: 
+Front image: front/un.png
+Front audio: 
+
+Back answer: un
+Back latex string: 
+Back IPA string: /œ̃/
+Back image: front/un.png
+Back audio: back/un.mp3
+---
+Cardtitle: 2 – deux
+Front question: 2
+Front latex string: 
+Front IPA string: 
+Front image: front/deux.png
+Front audio: 
+
+Back answer: deux
+Back latex string: 
+Back IPA string: /dø/
+Back image: front/deux.png
+Back audio: back/deux.mp3
+---
+Cardtitle: 3 – trois
+Front question: 3
+Front latex string: 
+Front IPA string: 
+Front image: front/trois.png
+Front audio: 
+
+Back answer: trois
+Back latex string: 
+Back IPA string: /tʁwɑ/
+Back image: front/trois.png
+Back audio: back/trois.mp3
+---
+Cardtitle: 4 – quatre
+Front question: 4
+Front latex string: 
+Front IPA string: 
+Front image: front/quatre.png
+Front audio: 
+
+Back answer: quatre
+Back latex string: 
+Back IPA string: /katʁ/
+Back image: front/quatre.png
+Back audio: back/quatre.mp3
+---
+Cardtitle: 5 – cinq
+Front question: 5
+Front latex string: 
+Front IPA string: 
+Front image: front/cinq.png
+Front audio: 
+
+Back answer: cinq
+Back latex string: 
+Back IPA string: /sɛ̃k/
+Back image: front/cinq.png
+Back audio: back/cinq.mp3
+---
+Cardtitle: 6 – six
+Front question: 6
+Front latex string: 
+Front IPA string: 
+Front image: front/six.png
+Front audio: 
+
+Back answer: six
+Back latex string: 
+Back IPA string: /sis/
+Back image: front/six.png
+Back audio: back/six.mp3
+---
+Cardtitle: 7 – sept
+Front question: 7
+Front latex string: 
+Front IPA string: 
+Front image: front/sept.png
+Front audio: 
+
+Back answer: sept
+Back latex string: 
+Back IPA string: /sɛt/
+Back image: front/sept.png
+Back audio: back/sept.mp3
+---
+Cardtitle: 8 – huit
+Front question: 8
+Front latex string: 
+Front IPA string: 
+Front image: front/huit.png
+Front audio: 
+
+Back answer: huit
+Back latex string: 
+Back IPA string: /ɥit/
+Back image: front/huit.png
+Back audio: back/huit.mp3
+---
+Cardtitle: 9 – neuf
+Front question: 9
+Front latex string: 
+Front IPA string: 
+Front image: front/neuf.png
+Front audio: 
+
+Back answer: neuf
+Back latex string: 
+Back IPA string: /nœf/
+Back image: front/neuf.png
+Back audio: back/neuf.mp3
+---
+Cardtitle: 10 – dix
+Front question: 10
+Front latex string: 
+Front IPA string: 
+Front image: front/dix.png
+Front audio: 
+
+Back answer: dix
+Back latex string: 
+Back IPA string: /dis/
+Back image: front/dix.png
+Back audio: back/dix.mp3
+---
+Cardtitle: 11 – onze
+Front question: 11
+Front latex string: 
+Front IPA string: 
+Front image: front/onze.png
+Front audio: 
+
+Back answer: onze
+Back latex string: 
+Back IPA string: /ɔ̃z/
+Back image: front/onze.png
+Back audio: back/onze.mp3
+---
+Cardtitle: 12 – douze
+Front question: 12
+Front latex string: 
+Front IPA string: 
+Front image: front/douze.png
+Front audio: 
+
+Back answer: douze
+Back latex string: 
+Back IPA string: /duz/
+Back image: front/douze.png
+Back audio: back/douze.mp3
+---
+Cardtitle: 13 – treize
+Front question: 13
+Front latex string: 
+Front IPA string: 
+Front image: front/treize.png
+Front audio: 
+
+Back answer: treize
+Back latex string: 
+Back IPA string: /tʁɛz/
+Back image: front/treize.png
+Back audio: back/treize.mp3
+---
+Cardtitle: 14 – quatorze
+Front question: 14
+Front latex string: 
+Front IPA string: 
+Front image: front/quatorze.png
+Front audio: 
+
+Back answer: quatorze
+Back latex string: 
+Back IPA string: /katɔʁz/
+Back image: front/quatorze.png
+Back audio: back/quatorze.mp3
+---
+Cardtitle: 15 – quinze
+Front question: 15
+Front latex string: 
+Front IPA string: 
+Front image: front/quinze.png
+Front audio: 
+
+Back answer: quinze
+Back latex string: 
+Back IPA string: /kɛ̃z/
+Back image: front/quinze.png
+Back audio: back/quinze.mp3
+---
+Cardtitle: 16 – seize
+Front question: 16
+Front latex string: 
+Front IPA string: 
+Front image: front/seize.png
+Front audio: 
+
+Back answer: seize
+Back latex string: 
+Back IPA string: /sɛz/
+Back image: front/seize.png
+Back audio: back/seize.mp3
+---
+Cardtitle: 17 – dix-sept
+Front question: 17
+Front latex string: 
+Front IPA string: 
+Front image: front/dix-sept.png
+Front audio: 
+
+Back answer: dix-sept
+Back latex string: 
+Back IPA string: /dis sɛt/
+Back image: front/dix-sept.png
+Back audio: back/dix-sept.mp3
+---
+Cardtitle: 18 – dix-huit
+Front question: 18
+Front latex string: 
+Front IPA string: 
+Front image: front/dix-huit.png
+Front audio: 
+
+Back answer: dix-huit
+Back latex string: 
+Back IPA string: /dizɥit/
+Back image: front/dix-huit.png
+Back audio: back/dix-huit.mp3
+---
+Cardtitle: 19 – dix-neuf
+Front question: 19
+Front latex string: 
+Front IPA string: 
+Front image: front/dix-neuf.png
+Front audio: 
+
+Back answer: dix-neuf
+Back latex string: 
+Back IPA string: /diznœf/
+Back image: front/dix-neuf.png
+Back audio: back/dix-neuf.mp3
+---
+Cardtitle: 20 – vingt
+Front question: 20
+Front latex string: 
+Front IPA string: 
+Front image: front/vingt.png
+Front audio: 
+
+Back answer: vingt
+Back latex string: 
+Back IPA string: /vɛ̃/
+Back image: front/vingt.png
+Back audio: back/vingt.mp3
