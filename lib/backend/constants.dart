@@ -1,6 +1,6 @@
 // This file contains constants used by the backend and UI.
 // Centralising them here makes it easy to change values globally (e.g. app title).
-const String appTitle = 'Simonsen Flashcard - The easy to use flashcard app';
+const String appTitle = 'Simonsen Flashcard';
 
 /// The folder name of the example deck that is pre-selected on first launch.
 const String defaultDeckName = 'Basic French Example';
