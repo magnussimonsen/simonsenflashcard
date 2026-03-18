@@ -11,6 +11,8 @@ emulator -avd Medium_Phone_API_36.1 -no-snapshot
 emulator -avd Medium_Phone_API_36.1
 emulator -avd Pixel_7
 
+flutter run -d emulator-5554
+
 # Add Android SDK to PATH
 
 # Option 1: Add to PowerShell profile (persists in all new terminals, run once)
