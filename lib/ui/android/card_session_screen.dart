@@ -828,16 +828,6 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     ),
                   ],
                 ),
-                GestureDetector(
-                  onLongPress: _showCardManagementSheet,
-                  child: const Tooltip(
-                    message: 'Long-press for card management',
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Icon(Icons.edit_note),
-                    ),
-                  ),
-                ),
                 IconButton(
                   icon: Icon(
                     Icons.school,
