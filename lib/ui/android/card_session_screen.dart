@@ -470,7 +470,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
   Future<void> _importDeck() async {
     const typeGroup = XTypeGroup(
       label: 'Deck file',
-      extensions: ['txt', 'flashcarddeck'],
+      extensions: ['yaml', 'txt', 'flashcarddeck'],
     );
     final file = await openFile(acceptedTypeGroups: [typeGroup]);
     if (file == null || !mounted) return;
@@ -485,7 +485,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
             'This file has the .flashcarddeck extension, which means it is '
             'probably already part of a Simonsen Flashcard deck folder on your device.\n\n'
             'Use "Open deck" from the menu to open an existing deck, or '
-            'select a plain .txt file to import a new deck.',
+            'select a .yaml or .txt file to import a new deck.',
           ),
           actions: [
             TextButton(
@@ -498,7 +498,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
       return;
     }
 
-    // Plain .txt → validate and create the deck folder structure.
+    // .yaml / .txt → validate and create the deck folder structure.
     try {
       final session = await DeckService().importDeckFile(file.path);
       if (!mounted) return;

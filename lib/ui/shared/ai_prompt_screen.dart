@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_selector/file_selector.dart';
 
 /// Static format and output rules for the AI deck prompt.
 /// The task/topic line is assembled dynamically from the user's description.
@@ -121,10 +123,12 @@ class AiPromptScreen extends StatefulWidget {
 
 class _AiPromptScreenState extends State<AiPromptScreen> {
   final _descController = TextEditingController();
+  final _outputController = TextEditingController();
 
   @override
   void dispose() {
     _descController.dispose();
+    _outputController.dispose();
     super.dispose();
   }
 
@@ -134,6 +138,37 @@ class _AiPromptScreenState extends State<AiPromptScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Prompt copied to clipboard')));
+  }
+
+  Future<void> _saveYaml() async {
+    final content = _outputController.text.trim();
+    if (content.isEmpty) return;
+    // Suggest a filename based on the deckname field in the pasted YAML.
+    final match = RegExp(
+      r"deckname:\s*'([^']+)'",
+      caseSensitive: false,
+    ).firstMatch(content);
+    final deckName = match?.group(1)?.trim() ?? 'deck';
+    final safeName = deckName.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    try {
+      final location = await getSaveLocation(
+        suggestedName: '$safeName.yaml',
+        acceptedTypeGroups: [
+          const XTypeGroup(label: 'YAML deck file', extensions: ['yaml']),
+        ],
+      );
+      if (location == null || !mounted) return;
+      await File(location.path).writeAsString(content);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved to ${location.path}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not save file: $e')));
+    }
   }
 
   @override
@@ -198,8 +233,9 @@ class _AiPromptScreenState extends State<AiPromptScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Step 2 — Paste into ChatGPT, Claude, Gemini, etc. '
-                  'Then import the result with "Import deck" in the menu. '
-                  'The prompt now also covers the card LaTeX fields.',
+                  'Copy the AI response and paste it into Step 3 below to '
+                  'save it as a deck file, then import it with "Import deck" '
+                  'in the app menu.',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -216,6 +252,45 @@ class _AiPromptScreenState extends State<AiPromptScreen> {
                   height: 1.55,
                 ),
               ),
+            ),
+          ),
+          // ── Step 3: paste AI output and save as .yaml ─────────────────────
+          Container(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Step 3 — Paste the AI response and save as a deck file',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _outputController,
+                  maxLines: 5,
+                  decoration: const InputDecoration(
+                    hintText: 'Paste the YAML output from the AI here…',
+                    border: OutlineInputBorder(),
+                    filled: true,
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 8),
+                FilledButton.icon(
+                  icon: const Icon(Icons.download),
+                  label: const Text('Save deck file (.yaml)'),
+                  onPressed:
+                      _outputController.text.trim().isEmpty ? null : _saveYaml,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Then import the saved file with "Import deck" in the app menu.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ),
           ),
         ],

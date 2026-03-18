@@ -8,7 +8,7 @@ import 'stats_service.dart';
 import '../utils/path_utils.dart';
 
 /// Handles loading and saving decks from the file system.
-/// Each deck lives in its own folder: `decks/<deck_name>/deck.flashcarddeck`
+/// Each deck lives in its own folder: `decks/<deck_name>/deck.yaml`
 ///
 /// Parsing and serialisation of the deck file format live in [deck_codec.dart].
 /// File-path helpers live in [path_utils.dart].
@@ -86,6 +86,21 @@ class DeckService {
     }
   }
 
+  /// Validates that [name] is safe to use as a deck folder name.
+  /// Throws [ArgumentError] if it is empty or contains path-traversal characters.
+  static void _validateDeckName(String name) {
+    if (name.isEmpty) {
+      throw ArgumentError('Deck name must not be empty.');
+    }
+    if (name.contains('/') ||
+        name.contains('\\') ||
+        name == '..' ||
+        name.startsWith('../') ||
+        name.startsWith('..\\')) {
+      throw ArgumentError('Deck name "$name" contains invalid characters.');
+    }
+  }
+
   /// Save the session to a new folder under the Simonsen Flashcard decks root.
   ///
   /// [newDeckName] becomes both the subfolder name and the deck header name.
@@ -93,6 +108,7 @@ class DeckService {
   /// subsequent [saveDeck] calls write to the new location.
   /// Throws [ArgumentError] if a deck with that name already exists.
   Future<void> saveDeckAs(DeckSession session, String newDeckName) async {
+    _validateDeckName(newDeckName);
     final root = await getDecksRootPath();
     final newFolder = Directory('$root/$newDeckName');
     if (await newFolder.exists()) {
@@ -152,6 +168,7 @@ class DeckService {
   /// Create a new empty deck on disk and return its [DeckSession].
   /// Throws [ArgumentError] if a deck with [deckName] already exists.
   Future<DeckSession> createNewDeck(String deckName) async {
+    _validateDeckName(deckName);
     final root = await getDecksRootPath();
     final folder = Directory('$root/$deckName');
     if (await folder.exists()) {
@@ -225,6 +242,12 @@ class DeckService {
     }
     // Mark as example deck.
     await File('$destDirPath/$exampleSentinelName').writeAsString('');
+    // Remove legacy deck files that may linger from older app versions.
+    // Example decks are read-only so saveDeck() never runs their cleanup path.
+    for (final legacyName in ['deck.flashcarddeck', 'deck.txt']) {
+      final legacy = File('$destDirPath/$legacyName');
+      if (await legacy.exists()) await legacy.delete();
+    }
   }
 
   /// Re-copy all example decks bundled in assets back to the Simonsen Flashcard
@@ -308,7 +331,7 @@ class DeckService {
       }
     }
 
-    // ── Create folder & write as YAML ─────────────────────────────────────────
+    _validateDeckName(parsed.deckName);
     final root = await getDecksRootPath();
     final folder = Directory('$root/${parsed.deckName}');
     if (await folder.exists()) {

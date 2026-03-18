@@ -31,7 +31,12 @@ DeckContents parseDeck(String content) {
 // ── YAML format ──────────────────────────────────────────────────────────────
 
 DeckContents _parseDeckYaml(String content) {
-  final dynamic doc = loadYaml(content);
+  final dynamic doc;
+  try {
+    doc = loadYaml(content);
+  } catch (e) {
+    throw FormatException('Malformed YAML deck file: $e');
+  }
   if (doc is! YamlMap) {
     throw const FormatException('Invalid deck file: expected a YAML mapping.');
   }
@@ -296,4 +301,8 @@ CardModel? _parseLegacyCardBlock(List<String> lines) {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /// Wraps [s] in YAML single quotes, escaping internal single quotes as ''.
-String _q(String s) => "'${s.replaceAll("'", "''")}'";
+/// Newlines are normalised to spaces — YAML single-quoted scalars fold
+/// single line-breaks into spaces anyway, so we make the round-trip lossless
+/// by normalising before writing.
+String _q(String s) =>
+    "'${s.replaceAll('\r\n', ' ').replaceAll('\n', ' ').replaceAll("'", "''")}'";
