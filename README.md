@@ -16,7 +16,7 @@ See [PLANMODE.md](PLANMODE.md) for full design decisions, UI spec, and file form
 - Flutter (Dart)
 - Targets: Android, Windows desktop
 - UI is platform-specific per target; backend is shared across all platforms
-- Key packages: `audioplayers`, `file_selector`, `path_provider`, `flutter_math_fork`, `url_launcher`, `uuid`
+- Key packages: `audioplayers`, `file_selector`, `path_provider`, `flutter_math_fork`, `url_launcher`, `uuid`, `yaml`
 
 ## Running the app
 
@@ -98,7 +98,7 @@ Each deck lives in its own folder. All assets are kept in subfolders so decks ar
 ```
 decks/
   My Deck/
-    deck.flashcarddeck    # card definitions
+    deck.yaml             # card definitions (YAML)
     deck.stats.yaml       # review statistics (auto-generated)
     assets/
       images/
@@ -109,43 +109,47 @@ decks/
         back/
 ```
 
-`image` and `audio` fields store a relative path within `assets/images/` or `assets/audio/` respectively (e.g. `back/chien.mp3`).
+`image` and `audio` fields store a relative path within `assets/images/` or `assets/audio/` respectively (e.g. `back/chien.mp3`). Omit these fields entirely when unused.
 
-**deck.flashcarddeck format:**
+**deck.yaml format:**
 
+```yaml
+deckname: 'My Deck'
+mode: 'Normal'
+cards:
+  - title: 'Dog'
+    front:
+      question: 'Dog'
+      ipa: '/dɔːɡ/'
+      options:
+        - 'chien'
+        - 'chat'
+        - 'cheval'
+    back:
+      answer: 'Chien'
+      ipa: '/ʃjɛ̃/'
+      audio: 'back/chien.mp3'
+      image: 'back/dog.jpg'
+      options:
+        - 'dog'
+        - 'cat'
+        - 'horse'
 ```
-Deckname: My Deck
-Available modes: Normal
 
----
-Cardtitle: Dog
-Front question: Dog
-Back answer: Chien
-Front latex string:
-Back latex string:
-Front IPA string: /dɔːɡ/
-Back IPA string: /ʃjɛ̃/
-Front audio:
-Back audio: back/chien.mp3
-Front image:
-Back image: back/dog.jpg
-Front option 1: chien
-Front option 2: chat
-Front option 3: cheval
-```
+| Field           | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| `title`         | Unique identifier for the card                               |
+| `question`      | Text shown on the front of the card                          |
+| `answer`        | Primary answer shown on the back                             |
+| `latex`         | Optional raw LaTeX expression (front or back)                |
+| `ipa`           | Optional IPA transcription (front or back)                   |
+| `audio`         | Relative path inside `assets/audio/` (e.g. `back/word.mp3`) |
+| `image`         | Relative path inside `assets/images/` (e.g. `back/dog.jpg`) |
+| `options`       | List of up to 3 multiple-choice options (front or back)      |
 
-| Field                     | Description                                                 |
-| ------------------------- | ----------------------------------------------------------- |
-| `Cardtitle`               | Unique identifier for the card                              |
-| `Front question`          | Text shown on the front of the card                         |
-| `Back answer`             | Primary answer shown on the back                            |
-| `Front/Back latex string` | Optional LaTeX expression                                   |
-| `Front/Back IPA string`   | IPA transcription                                           |
-| `Front/Back audio`        | Relative path inside `assets/audio/` (e.g. `back/word.mp3`) |
-| `Front/Back image`        | Relative path inside `assets/images/` (e.g. `back/dog.jpg`) |
-| `Front/Back option N`     | Multiple-choice options shown as chips when toggled on      |
+All optional fields (`latex`, `ipa`, `audio`, `image`, `options`) may be omitted entirely when unused. String values must be wrapped in single quotes; a literal single quote inside a value is written as two single quotes (`''`).
 
-Use `none` or leave blank for unused fields. Cards are separated by a line containing only `---`.
+> **Backward compatibility:** the app transparently reads legacy `deck.flashcarddeck` and `deck.txt` files and migrates them to `deck.yaml` on the next save.
 
 ## Hamburger menu (both platforms)
 
@@ -153,7 +157,7 @@ Use `none` or leave blank for unused fields. Cards are separated by a line conta
 | ------------------------- | ----------------------------------- |
 | Open deck                 | Pick from all available decks       |
 | New deck                  | Create a blank deck                 |
-| Import deck               | Import a `.txt` deck file           |
+| Import deck               | Import a `.yaml` or legacy `.flashcarddeck`/`.txt` deck file |
 | Edit current deck         | Open the deck editor                |
 | Save deck                 | Overwrite current deck on disk      |
 | Save deck as              | Save a copy under a new name        |

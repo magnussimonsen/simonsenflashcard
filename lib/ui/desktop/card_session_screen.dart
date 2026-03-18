@@ -15,19 +15,19 @@ import '../shared/ai_prompt_screen.dart';
 import '../shared/about_dialog.dart';
 import 'deck_editor_screen.dart';
 
-enum _DeckMenuAction {
+enum _FileMenuAction {
   openDeck,
   newDeck,
   importDeck,
-  editDeck,
   saveDeck,
   saveDeckAs,
-  deleteDeck,
   showHelp,
   showAiPrompt,
   showAbout,
-  srsSettings,
+  quit,
 }
+
+enum _EditMenuAction { editCard, editDeck, deleteDeck }
 
 // SessionMode is defined in constants.dart
 
@@ -223,15 +223,11 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     return false;
   }
 
-  void _onDeckMenuSelected(_DeckMenuAction action) {
+  void _onFileMenuSelected(_FileMenuAction action) {
     switch (action) {
-      case _DeckMenuAction.openDeck:
+      case _FileMenuAction.openDeck:
         _openFromList();
-      case _DeckMenuAction.importDeck:
-        _importDeck();
-      case _DeckMenuAction.editDeck:
-        _openEditDeck();
-      case _DeckMenuAction.newDeck:
+      case _FileMenuAction.newDeck:
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -240,26 +236,39 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         ).then((_) {
           if (mounted) setState(() {});
         });
-      case _DeckMenuAction.deleteDeck:
-        _showDeleteDeckConfirm();
-      case _DeckMenuAction.saveDeck:
+      case _FileMenuAction.importDeck:
+        _importDeck();
+      case _FileMenuAction.saveDeck:
         _saveDeck();
-      case _DeckMenuAction.saveDeckAs:
+      case _FileMenuAction.saveDeckAs:
         _saveDeckAs();
-      case _DeckMenuAction.showHelp:
+      case _FileMenuAction.showHelp:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const HelpScreen()),
         );
-      case _DeckMenuAction.showAiPrompt:
+      case _FileMenuAction.showAiPrompt:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const AiPromptScreen()),
         );
-      case _DeckMenuAction.showAbout:
+      case _FileMenuAction.showAbout:
         showAboutAppDialog(context);
-      case _DeckMenuAction.srsSettings:
-        _showSrsSettings();
+      case _FileMenuAction.quit:
+        exit(0);
+    }
+  }
+
+  void _onEditMenuSelected(_EditMenuAction action) {
+    switch (action) {
+      case _EditMenuAction.editCard:
+        _openEditDeck(
+          initialEntryIndex: widget.session.entries.indexOf(_currentEntry),
+        );
+      case _EditMenuAction.editDeck:
+        _openEditDeck();
+      case _EditMenuAction.deleteDeck:
+        _showDeleteDeckConfirm();
     }
   }
 
@@ -691,72 +700,76 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
             height: 48,
             child: Row(
               children: [
-                PopupMenuButton<_DeckMenuAction>(
+                PopupMenuButton<_FileMenuAction>(
                   icon: const Icon(Icons.menu),
-                  tooltip: 'Deck menu',
-                  onSelected: _onDeckMenuSelected,
-                  itemBuilder: (_) => [
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.openDeck,
+                  tooltip: 'File',
+                  onSelected: _onFileMenuSelected,
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(
+                      value: _FileMenuAction.openDeck,
                       child: Text('Open deck'),
                     ),
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.newDeck,
+                    PopupMenuItem(
+                      value: _FileMenuAction.newDeck,
                       child: Text('New deck'),
                     ),
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.importDeck,
+                    PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: _FileMenuAction.importDeck,
                       child: Text('Import deck'),
                     ),
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.editDeck,
-                      child: Text('Edit current deck'),
-                    ),
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.saveDeck,
+                    PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: _FileMenuAction.saveDeck,
                       child: Text('Save deck'),
                     ),
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.saveDeckAs,
+                    PopupMenuItem(
+                      value: _FileMenuAction.saveDeckAs,
                       child: Text('Save deck as'),
                     ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.deleteDeck,
-                      child: Text(
-                        'Delete deck',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.srsSettings,
-                      child: Text('SRS settings'),
-                    ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.showHelp,
+                    PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: _FileMenuAction.showHelp,
                       child: Text('Help'),
                     ),
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.showAiPrompt,
-                      child: Text('Use AI to generate a deck'),
+                    PopupMenuItem(
+                      value: _FileMenuAction.showAiPrompt,
+                      child: Text('Generate prompt for AI deck creation'),
                     ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: _DeckMenuAction.showAbout,
+                    PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: _FileMenuAction.showAbout,
                       child: Text('About'),
+                    ),
+                    PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: _FileMenuAction.quit,
+                      child: Text('Quit'),
                     ),
                   ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit_note),
-                  tooltip: 'Edit current card',
-                  onPressed: () => _openEditDeck(
-                    initialEntryIndex: widget.session.entries.indexOf(
-                      _currentEntry,
+                PopupMenuButton<_EditMenuAction>(
+                  icon: const Icon(Icons.edit),
+                  tooltip: 'Edit',
+                  onSelected: _onEditMenuSelected,
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(
+                      value: _EditMenuAction.editCard,
+                      child: Text('Edit current card'),
                     ),
-                  ),
+                    const PopupMenuItem(
+                      value: _EditMenuAction.editDeck,
+                      child: Text('Edit current deck'),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: _EditMenuAction.deleteDeck,
+                      child: Text(
+                        'Delete deck',
+                        style: TextStyle(color: Colors.red[700]),
+                      ),
+                    ),
+                  ],
                 ),
                 IconButton(
                   icon: Icon(
@@ -918,7 +931,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               content: Text(
                 'Session limit reached ($_sessionCardLimit cards). '
-                'Press "Continue" to keep going or change the limit in SRS settings.',
+                'Press "Continue" to keep going or change the limit in session mode settings.',
               ),
               actions: [
                 TextButton(

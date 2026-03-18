@@ -40,6 +40,7 @@ dependencies:
   flutter_math_fork: ^0.7.4
   uuid: ^4.4.0
   url_launcher: ^6.3.0
+  yaml: ^3.1.2
 
 dev_dependencies:
   flutter_test:
@@ -82,10 +83,10 @@ flutter:
     # To ship a new deck: add its folder under assets/decks/ then list its
     # files below.  The app discovers all bundled decks at runtime via
     # AssetManifest — no Dart code changes needed.
-    - assets/decks/Basic French Example/deck.flashcarddeck
+    - assets/decks/Basic French Example/deck.yaml
     - assets/decks/Basic French Example/assets/images/front/
     - assets/decks/Basic French Example/assets/audio/back/
-    - assets/decks/French numbers 0–20 Example/deck.flashcarddeck
+    - assets/decks/French numbers 0–20 Example/deck.yaml
     - assets/decks/French numbers 0–20 Example/assets/images/front/
     - assets/decks/French numbers 0–20 Example/assets/audio/back/
 

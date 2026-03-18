@@ -3,114 +3,96 @@ import 'package:flutter/services.dart';
 
 /// Static format and output rules for the AI deck prompt.
 /// The task/topic line is assembled dynamically from the user's description.
-const String _promptSpec = '''
+const String _promptSpec = r'''
 You are helping me create a flashcard deck for the Simonsen Flashcard app.
-Please generate a deck file using EXACTLY the field labels and structure below.
+Please generate a deck file using EXACTLY the YAML structure shown below.
 
 ═══════════════════════════════════════
-SIMONSEN FLASHCARD DECK FILE FORMAT
+SIMONSEN FLASHCARD DECK FILE FORMAT (YAML)
 ═══════════════════════════════════════
 
-The file starts with a header, followed by one or more cards.
-Each card is preceded by a line containing only "---".
+The file is a YAML document. Wrap every string value in single quotes.
+To include a literal single quote inside a value, write it as two single quotes ('').
 
-─── HEADER (required) ──────────────────────────────────────────────────────────
-Deckname: My Deck Name
-Available modes: Normal
-
-─── CARD BLOCK (repeat for every card) ─────────────────────────────────────────
----
-Cardtitle: A unique title for this card
-Front question: The question or word shown on the front
-Front latex string: (optional raw LaTeX for the front side)
-Front IPA string: (optional IPA transcription, e.g. /hɛˈloʊ/, or leave blank)
-Front image: filename.jpg (bare filename only, or leave blank)
-Front audio: filename.mp3 (bare filename only, or leave blank)
-Front option1: (optional multiple-choice option, or omit line entirely)
-Front option2: (optional, or omit)
-Front option3: (optional, or omit)
-
-Back answer: The answer shown on the back
-Back latex string: (optional raw LaTeX for the back side)
-Back IPA string: (optional, or leave blank)
-Back image: filename.jpg (or leave blank)
-Back audio: filename.mp3 (or leave blank)
-Back option1: (optional, or omit)
-Back option2: (optional, or omit)
-Back option3: (optional, or omit)
+─── STRUCTURE ───────────────────────────────────────────────────────────────────
+deckname: 'My Deck Name'
+mode: 'Normal'
+cards:
+  - title: 'A unique title for this card'
+    front:
+      question: 'The question or word shown on the front'
+      latex: '(optional raw LaTeX — omit this line if unused)'
+      ipa: '(optional IPA transcription, e.g. /hɛˈloʊ/ — omit if unused)'
+      options:
+        - '(optional multiple-choice option 1 — omit options block if unused)'
+        - '(option 2)'
+        - '(option 3)'
+    back:
+      answer: 'The answer shown on the back'
+      latex: '(optional raw LaTeX — omit if unused)'
+      ipa: '(optional — omit if unused)'
+      options:
+        - '(optional — omit options block if unused)'
+        - '(option 2)'
+        - '(option 3)'
 ─────────────────────────────────────────────────────────────────────────────────
 
 ═══════════════════════════════════════
 RULES
 ═══════════════════════════════════════
-• "Deckname:" and "Available modes:" must appear in the header (before the first ---).
-• Every card MUST have "Cardtitle:" (unique across the deck) and "Front question:".
-• All other field labels must still be present — leave the value empty when unused.
-  Example of empty field:   Front image:
-• Do NOT write the word "none" as a value — leave the field blank instead.
+• The section labels in this spec (lines starting with ─── or ═══) are
+  documentation only — do NOT include them in the generated file.
+• 'deckname:' and 'mode:' must appear before the 'cards:' list.
+• Every card MUST have 'title:' (unique across the deck) and a front 'question:'.
+• Omit any optional field that is not used — do NOT include empty lines or values.
+• Wrap every string value in single quotes.
+• 'mode: Normal' is always correct unless told otherwise.
 • The app has dedicated LaTeX fields on both sides of a card. Put normal readable
-  text in "Front question:" and "Back answer:", and put the matching raw LaTeX
-  code in "Front latex string:" or "Back latex string:" when useful.
-• In LaTeX fields, output raw LaTeX only. Do NOT wrap it in \$...\$, \$\$...\$\$,
+  text in 'question:'/'answer:', and put raw LaTeX code in 'latex:' when useful.
+• In LaTeX fields, output raw LaTeX only. Do NOT wrap it in $...$, $$...$$,
   (...), markdown, or explanatory text.
-• If a card does not need mathematical or symbolic notation, leave its LaTeX
-  field blank.
-• Image filenames are bare filenames (no path). The app looks for them in
-  assets/images/ inside the deck folder.
-• Audio filenames are bare filenames. The app looks for them in assets/audio/.
-• Unless I explicitly ask for image or audio assets, leave image/audio fields blank.
-• Up to 3 front options and 3 back options per card. Omit option lines entirely
-  if the card has no multiple-choice options.
-• "Available modes: Normal" is the correct value unless told otherwise.
-• Do NOT add a closing "---" after the last card.
-• There are no blank lines between the header fields.
-• Within a card block there may be a blank line between the Front block and the
-  Back block (as in the example below), but it is optional.
+• If a card does not need mathematical or symbolic notation, omit the latex field.
+• Omit image and audio fields entirely — AI cannot generate them.
+  They can be added manually in the deck editor later.
+• Up to 3 front options and 3 back options per card. Omit the options block
+  entirely if the card has no multiple-choice options.
 • Keep cards accurate, concise, and non-duplicative.
 
 ═══════════════════════════════════════
-EXAMPLE — 2-card Spanish deck
+EXAMPLE 1 — Language card with IPA
 ═══════════════════════════════════════
-Deckname: Basic Spanish
-Available modes: Normal
----
-Cardtitle: Hello
-Front question: Hello
-Front latex string: 
-Front IPA string: /həˈloʊ/
-Front image: 
-Front audio: 
-Front option1: Hola
-Front option2: Adiós
-Front option3: Gracias
+deckname: 'Basic French'
+mode: 'Normal'
+cards:
+  - title: 'Cat'
+    front:
+      question: 'cat'
+      ipa: '/kæt/'
+      options:
+        - 'le chat'
+        - 'le chien'
+        - 'le cheval'
+    back:
+      answer: 'le chat'
+      ipa: '/lə ʃa/'
+      options:
+        - 'the cat'
+        - 'the dog'
+        - 'the horse'
 
-Back answer: Hola
-Back latex string: 
-Back IPA string: /ˈo.la/
-Back image: 
-Back audio: hola.mp3
-Back option1: Hello
-Back option2: Goodbye
-Back option3: Thank you
----
-Cardtitle: Goodbye
-Front question: Goodbye
-Front latex string: 
-Front IPA string: /ɡʊdˈbaɪ/
-Front image: 
-Front audio: 
-Front option1: Adiós
-Front option2: Hola
-Front option3: Por favor
-
-Back answer: Adiós
-Back latex string: 
-Back IPA string: /aˈðjos/
-Back image: 
-Back audio: adios.mp3
-Back option1: Goodbye
-Back option2: Hello
-Back option3: Please
+═══════════════════════════════════════
+EXAMPLE 2 — Algebra card with LaTeX
+═══════════════════════════════════════
+deckname: 'Algebra Basics'
+mode: 'Normal'
+cards:
+  - title: 'Quadratic formula'
+    front:
+      question: 'What is the quadratic formula for solving ax² + bx + c = 0?'
+      latex: 'ax^2 + bx + c = 0'
+    back:
+      answer: 'x equals negative b plus or minus the square root of b squared minus 4ac, all over 2a.'
+      latex: 'x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}'
 ''';
 
 String _buildPrompt(String deckDescription) {

@@ -1,0 +1,345 @@
+deckname: 'Basic French Example'
+mode: 'Normal'
+cards:
+  - title: 'Dog'
+    front:
+      question: 'Dog'
+      ipa: '/dɔːɡ/'
+      image: 'front/dog.jpg'
+      options:
+        - 'chien'
+        - 'chat'
+        - 'cheval'
+    back:
+      answer: 'Chien'
+      ipa: '/ʃjɛ̃/'
+      image: 'front/dog.jpg'
+      audio: 'back/chien.mp3'
+      options:
+        - 'dog'
+        - 'cat'
+        - 'horse'
+  - title: 'Cat'
+    front:
+      question: 'Cat'
+      ipa: '/kæt/'
+      image: 'front/cat.jpg'
+      options:
+        - 'chat'
+        - 'chien'
+        - 'poisson'
+    back:
+      answer: 'Chat'
+      ipa: '/ʃa/'
+      image: 'front/cat.jpg'
+      audio: 'back/chat.mp3'
+      options:
+        - 'cat'
+        - 'dog'
+        - 'fish'
+  - title: 'Horse'
+    front:
+      question: 'Horse'
+      ipa: '/hɔːrs/'
+      image: 'front/horse.jpg'
+      options:
+        - 'cheval'
+        - 'poisson'
+        - 'cœur'
+    back:
+      answer: 'Cheval'
+      ipa: '/ʃəval/'
+      image: 'front/horse.jpg'
+      audio: 'back/cheval.mp3'
+      options:
+        - 'horse'
+        - 'fish'
+        - 'heart'
+  - title: 'Fish'
+    front:
+      question: 'Fish'
+      ipa: '/fɪʃ/'
+      image: 'front/fish.jpg'
+      options:
+        - 'poisson'
+        - 'cheval'
+        - 'chat'
+    back:
+      answer: 'Poisson'
+      ipa: '/pwasɔ̃/'
+      image: 'front/fish.jpg'
+      audio: 'back/poisson.mp3'
+      options:
+        - 'fish'
+        - 'horse'
+        - 'cat'
+  - title: 'Heart'
+    front:
+      question: 'Heart'
+      ipa: '/hɑːrt/'
+      image: 'front/heart.png'
+      options:
+        - 'cœur'
+        - 'cheval'
+        - 'poisson'
+    back:
+      answer: 'Cœur'
+      ipa: '/kœʁ/'
+      image: 'front/heart.png'
+      audio: 'back/coeur.mp3'
+      options:
+        - 'heart'
+        - 'horse'
+        - 'fish'
+  - title: 'World'
+    front:
+      question: 'World'
+      ipa: '/wɜːld/'
+      image: 'front/world.jpg'
+      options:
+        - 'monde'
+        - 'école'
+        - 'hiver'
+    back:
+      answer: 'Monde'
+      ipa: '/mɔ̃d/'
+      image: 'front/world.jpg'
+      audio: 'back/Monde.mp3'
+      options:
+        - 'world'
+        - 'school'
+        - 'winter'
+  - title: 'School'
+    front:
+      question: 'School'
+      ipa: '/skuːl/'
+      image: 'front/school.png'
+      options:
+        - 'école'
+        - 'monde'
+        - 'automne'
+    back:
+      answer: 'École'
+      ipa: '/ekɔl/'
+      image: 'front/school.png'
+      audio: 'back/École.mp3'
+      options:
+        - 'school'
+        - 'world'
+        - 'autumn'
+  - title: 'Winter'
+    front:
+      question: 'Winter'
+      ipa: '/ˈvɪntər/'
+      image: 'front/winter.png'
+      options:
+        - 'hiver'
+        - 'été'
+        - 'printemps'
+    back:
+      answer: 'Hiver'
+      ipa: '/ivɛʁ/'
+      image: 'front/winter.png'
+      audio: 'back/Hiver.mp3'
+      options:
+        - 'winter'
+        - 'summer'
+        - 'spring'
+  - title: 'Autumn'
+    front:
+      question: 'Autumn'
+      ipa: '/ˈɔːtəm/'
+      image: 'front/autumn.png'
+      options:
+        - 'automne'
+        - 'hiver'
+        - 'printemps'
+    back:
+      answer: 'Automne'
+      ipa: '/otɔn/'
+      image: 'front/autumn.png'
+      audio: 'back/Automne.mp3'
+      options:
+        - 'autumn'
+        - 'winter'
+        - 'spring'
+  - title: 'Spring'
+    front:
+      question: 'Spring'
+      ipa: '/sprɪŋ/'
+      image: 'front/spring.png'
+      options:
+        - 'printemps'
+        - 'automne'
+        - 'été'
+    back:
+      answer: 'Printemps'
+      ipa: '/pʁɛ̃tɑ̃/'
+      image: 'front/spring.png'
+      audio: 'back/Printemps.mp3'
+      options:
+        - 'spring'
+        - 'autumn'
+        - 'summer'
+  - title: 'Summer'
+    front:
+      question: 'Summer'
+      ipa: '/ˈsʌmər/'
+      image: 'front/summer.png'
+      options:
+        - 'été'
+        - 'printemps'
+        - 'hiver'
+    back:
+      answer: 'Été'
+      ipa: '/ete/'
+      image: 'front/summer.png'
+      audio: 'back/Été.mp3'
+      options:
+        - 'summer'
+        - 'spring'
+        - 'winter'
+  - title: 'Warm'
+    front:
+      question: 'Warm'
+      ipa: '/wɔːrm/'
+      image: 'front/warm.png'
+      options:
+        - 'chaud'
+        - 'froid'
+        - 'hiver'
+    back:
+      answer: 'Chaud'
+      ipa: '/ʃo/'
+      image: 'front/warm.png'
+      audio: 'back/Chaud.mp3'
+      options:
+        - 'warm'
+        - 'cold'
+        - 'winter'
+  - title: 'Cold'
+    front:
+      question: 'Cold'
+      ipa: '/koʊld/'
+      image: 'front/cold.png'
+      options:
+        - 'froid'
+        - 'chaud'
+        - 'été'
+    back:
+      answer: 'Froid'
+      ipa: '/fʁwa/'
+      image: 'front/cold.png'
+      audio: 'back/Froid.mp3'
+      options:
+        - 'cold'
+        - 'warm'
+        - 'summer'
+  - title: 'Sing'
+    front:
+      question: 'Sing'
+      ipa: '/sɪŋ/'
+      image: 'front/sing.png'
+      options:
+        - 'chanter'
+        - 'danser'
+        - 'nuage'
+    back:
+      answer: 'Chanter'
+      ipa: '/ʃɑ̃te/'
+      image: 'front/sing.png'
+      audio: 'back/Chanter.mp3'
+      options:
+        - 'sing'
+        - 'dance'
+        - 'rain'
+  - title: 'Dance'
+    front:
+      question: 'Dance'
+      ipa: '/dæns/'
+      image: 'front/dance.png'
+      options:
+        - 'danser'
+        - 'chanter'
+        - 'ciel'
+    back:
+      answer: 'Danser'
+      ipa: '/dɑ̃se/'
+      image: 'front/dance.png'
+      audio: 'back/Danser.mp3'
+      options:
+        - 'dance'
+        - 'sing'
+        - 'sky'
+  - title: 'Rain'
+    front:
+      question: 'Rain'
+      ipa: '/reɪn/'
+      image: 'front/rain.png'
+      options:
+        - 'pluie'
+        - 'nuage'
+        - 'ciel'
+    back:
+      answer: 'Pluie'
+      ipa: '/plɥi/'
+      image: 'front/rain.png'
+      audio: 'back/Pluie.mp3'
+      options:
+        - 'rain'
+        - 'cloud'
+        - 'sky'
+  - title: 'Cloud'
+    front:
+      question: 'Cloud'
+      ipa: '/klaʊd/'
+      image: 'front/cloud.png'
+      options:
+        - 'nuage'
+        - 'pluie'
+        - 'ciel'
+    back:
+      answer: 'Nuage'
+      ipa: '/nɥaʒ/'
+      image: 'front/cloud.png'
+      audio: 'back/Nuage.mp3'
+      options:
+        - 'cloud'
+        - 'rain'
+        - 'sky'
+  - title: 'Sky'
+    front:
+      question: 'Sky'
+      ipa: '/skaɪ/'
+      image: 'front/sky.png'
+      options:
+        - 'ciel'
+        - 'nuage'
+        - 'pluie'
+    back:
+      answer: 'Ciel'
+      ipa: '/sjɛl/'
+      image: 'front/sky.png'
+      audio: 'back/Ciel.mp3'
+      options:
+        - 'sky'
+        - 'cloud'
+        - 'rain'
+  - title: 'Even though'
+    front:
+      question: 'Even though'
+      ipa: '/ˈiːvən ðoʊ/'
+      image: 'front/even_though.png'
+      options:
+        - 'même si'
+        - 'parce que'
+        - 'donc'
+    back:
+      answer: 'Même si'
+      ipa: '/mɛm si/'
+      image: 'front/even_though.png'
+      audio: 'back/Même_si.mp3'
+      options:
+        - 'even though'
+        - 'because'
+        - 'therefore'

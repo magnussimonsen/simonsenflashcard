@@ -24,7 +24,7 @@ class DeckService {
   }
 
   /// The canonical filename used inside every deck folder.
-  static const String _deckFileName = 'deck.flashcarddeck';
+  static const String _deckFileName = 'deck.yaml';
 
   /// Sentinel file written into every example deck folder when it is deployed.
   /// Its presence means the deck is read-only (example deck).
@@ -37,12 +37,14 @@ class DeckService {
   }
 
   /// Returns the path of the deck data file inside [folderPath].
-  /// Prefers [_deckFileName]; falls back to 'deck.txt' for decks
-  /// created before the extension was introduced (auto-migrated on next save).
+  /// Tries deck.yaml, then legacy deck.flashcarddeck, then deck.txt.
+  /// On next save the deck is migrated to the current YAML format.
   Future<String> _resolveDeckFilePath(String folderPath) async {
-    final primary = File('$folderPath/$_deckFileName');
-    if (await primary.exists()) return primary.path;
-    return '$folderPath/deck.txt';
+    for (final name in [_deckFileName, 'deck.flashcarddeck', 'deck.txt']) {
+      final f = File('$folderPath/$name');
+      if (await f.exists()) return f.path;
+    }
+    return '$folderPath/$_deckFileName'; // does not exist yet; caller will fail
   }
 
   /// Load a deck folder into memory as a [DeckSession], including stats.
@@ -71,15 +73,17 @@ class DeckService {
   Future<void> saveDeck(DeckSession session) async {
     final file = File('${session.folderPath}/$_deckFileName');
     await file.writeAsString(
-      buildDeckText(
+      buildDeckYaml(
         session.deckName,
         session.mode,
         session.activeEntries.map((e) => e.card).toList(),
       ),
     );
-    // Migrate legacy deck.txt to the new extension if it still exists.
-    final legacy = File('${session.folderPath}/deck.txt');
-    if (await legacy.exists()) await legacy.delete();
+    // Migrate legacy files to the new YAML format on next save.
+    for (final name in ['deck.flashcarddeck', 'deck.txt']) {
+      final legacy = File('${session.folderPath}/$name');
+      if (await legacy.exists()) await legacy.delete();
+    }
   }
 
   /// Save the session to a new folder under the Simonsen Flashcard decks root.
@@ -135,6 +139,7 @@ class DeckService {
       if (entity is Directory) {
         final hasDeck =
             await File('${entity.path}/$_deckFileName').exists() ||
+            await File('${entity.path}/deck.flashcarddeck').exists() ||
             await File('${entity.path}/deck.txt').exists();
         if (hasDeck) {
           paths.add(entity.path);
@@ -209,7 +214,9 @@ class DeckService {
       final rel = key.substring(prefix.length);
       final dest = File('$destDirPath/$rel');
       await dest.parent.create(recursive: true);
-      if (key.endsWith('.flashcarddeck') || key.endsWith('.txt')) {
+      if (key.endsWith('.yaml') ||
+          key.endsWith('.flashcarddeck') ||
+          key.endsWith('.txt')) {
         await dest.writeAsString(await rootBundle.loadString(key));
       } else {
         final data = await rootBundle.load(key);
@@ -252,10 +259,13 @@ class DeckService {
     }
   }
 
-  /// Import a deck from a standalone `deck.txt` file.
+  /// Import any deck file (YAML or legacy format) from [filePath].
   ///
-  /// Reads [filePath], validates the format, then creates a new deck folder
-  /// under [getDecksRootPath()] with the name from the file's `Deckname:` line.
+  /// Parses [filePath], validates the content, then creates a new deck folder
+  /// under [getDecksRootPath()] named after the deck. The imported file is
+  /// always saved in the current YAML format, so legacy files are migrated
+  /// automatically.
+  ///
   /// Asset sub-folders (`assets/images/` and `assets/audio/`) are created
   /// but left empty — the user can drop media files there later.
   ///
@@ -263,71 +273,48 @@ class DeckService {
   /// Throws [ArgumentError] if a deck with that name already exists.
   Future<DeckSession> importDeckFile(String filePath) async {
     final content = await File(filePath).readAsString();
-    final segments = splitOnDeckSeparator(content);
 
-    // ── Validate header ──────────────────────────────────────────────────────
-    String deckName = '';
-    for (final line in segments[0].split('\n')) {
-      if (line.startsWith('Deckname:')) {
-        deckName = line.substring('Deckname:'.length).trim();
-      }
+    // ── Parse (auto-detects YAML vs legacy format) ────────────────────────────
+    DeckContents parsed;
+    try {
+      parsed = parseDeck(content);
+    } catch (e) {
+      throw FormatException('Could not parse deck file: $e');
     }
-    if (deckName.isEmpty) {
+
+    // ── Validate ──────────────────────────────────────────────────────────────
+    if (parsed.deckName.isEmpty) {
       throw const FormatException(
-        'Missing "Deckname:" in the deck file header.\n'
-        'The first line of the file must be:  Deckname: Your Deck Name',
+        'Missing deck name.\n'
+        'YAML format: add  deckname: \'Your Deck Name\'  at the top.\n'
+        'Legacy format: add  Deckname: Your Deck Name  at the top.',
       );
     }
-
-    // ── Validate card blocks ─────────────────────────────────────────────────
-    final cardSegments = segments.skip(1).where((s) {
-      return s.split('\n').any((l) => l.trim().isNotEmpty);
-    }).toList();
-
-    if (cardSegments.isEmpty) {
+    if (parsed.cards.isEmpty) {
       throw const FormatException(
-        'No cards found in the deck file.\n'
-        'Each card must be preceded by a line containing only "---".',
+        'No valid cards found in the deck file.\n'
+        'Each card must have a title and a front question.',
       );
     }
-
-    for (int i = 0; i < cardSegments.length; i++) {
-      final lines = cardSegments[i]
-          .split('\n')
-          .map((l) => l.trimRight())
-          .where((l) => l.isNotEmpty)
-          .toList();
-      final hasTitle = lines.any(
-        (l) =>
-            l.startsWith('Cardtitle:') &&
-            l.substring('Cardtitle:'.length).trim().isNotEmpty,
-      );
-      final hasFrontQ = lines.any(
-        (l) =>
-            l.startsWith('Front question:') &&
-            l.substring('Front question:'.length).trim().isNotEmpty,
-      );
-      if (!hasTitle) {
-        throw FormatException(
-          'Card ${i + 1} is missing "Cardtitle:" or its title is empty.\n'
-          'Every card must have a unique non-empty Cardtitle.',
-        );
+    for (int i = 0; i < parsed.cards.length; i++) {
+      final card = parsed.cards[i];
+      if (card.title.isEmpty) {
+        throw FormatException('Card ${i + 1} has an empty title.');
       }
-      if (!hasFrontQ) {
+      if (card.frontQuestion.isEmpty) {
         throw FormatException(
-          'Card ${i + 1} ("${cardTitleFromBlock(lines)}") is missing "Front question:".\n'
-          'Every card must have a non-empty Front question.',
+          'Card ${i + 1} ("${card.title}") has an empty front question.',
         );
       }
     }
 
-    // ── Create folder & write file ───────────────────────────────────────────
+    // ── Create folder & write as YAML ─────────────────────────────────────────
     final root = await getDecksRootPath();
-    final folder = Directory('$root/$deckName');
+    final folder = Directory('$root/${parsed.deckName}');
     if (await folder.exists()) {
       throw ArgumentError(
-        'A deck named "$deckName" already exists.\n'
-        'Rename the deck in the file (Deckname: line) and try again.',
+        'A deck named "${parsed.deckName}" already exists.\n'
+        'Rename the deck in the file and try again.',
       );
     }
     await folder.create(recursive: true);
@@ -341,7 +328,9 @@ class DeckService {
     await Directory(
       '${folder.path}/assets/images/back',
     ).create(recursive: true);
-    await File('${folder.path}/$_deckFileName').writeAsString(content);
+    await File(
+      '${folder.path}/$_deckFileName',
+    ).writeAsString(buildDeckYaml(parsed.deckName, parsed.mode, parsed.cards));
 
     return loadSession(folder.path);
   }

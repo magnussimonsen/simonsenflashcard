@@ -1,3 +1,4 @@
+import 'package:yaml/yaml.dart';
 import 'card_model.dart';
 
 /// The result of parsing a deck file — deck metadata plus all card models.
@@ -16,11 +17,167 @@ class DeckContents {
 
 /// Parses a raw deck-file string into [DeckContents].
 ///
-/// The file format uses `---` as a separator between the header block and
-/// each card block. Returns an empty card list (not an error) if the file
-/// has a valid header but no card blocks.
+/// Accepts both the current YAML format (lowercase key `deckname:`) and the
+/// legacy `key: value` / `---` format (capitalised key `Deckname:`).
+/// Legacy files are transparently converted at load time — the next
+/// [buildDeckYaml] + save migrates them to YAML.
 DeckContents parseDeck(String content) {
-  final segments = splitOnDeckSeparator(content);
+  if (content.trimLeft().startsWith('Deckname:')) {
+    return _parseDeckLegacy(content);
+  }
+  return _parseDeckYaml(content);
+}
+
+// ── YAML format ──────────────────────────────────────────────────────────────
+
+DeckContents _parseDeckYaml(String content) {
+  final dynamic doc = loadYaml(content);
+  if (doc is! YamlMap) {
+    throw const FormatException('Invalid deck file: expected a YAML mapping.');
+  }
+  final deckName = doc['deckname']?.toString() ?? '';
+  final mode = doc['mode']?.toString() ?? 'Normal';
+  final cards = <CardModel>[];
+
+  final rawCards = doc['cards'];
+  if (rawCards is YamlList) {
+    for (final rawCard in rawCards) {
+      if (rawCard is! YamlMap) continue;
+      final card = _parseYamlCard(rawCard);
+      if (card != null) cards.add(card);
+    }
+  }
+
+  return DeckContents(deckName: deckName, mode: mode, cards: cards);
+}
+
+CardModel? _parseYamlCard(YamlMap map) {
+  final title = map['title']?.toString();
+  if (title == null || title.isEmpty) return null;
+
+  final frontMap = map['front'];
+  String frontQuestion = '';
+  String frontLatex = '';
+  String frontIpa = '';
+  String? frontImage;
+  String? frontAudio;
+  List<String> frontOptions = const [];
+
+  if (frontMap is YamlMap) {
+    frontQuestion = frontMap['question']?.toString() ?? '';
+    frontLatex = frontMap['latex']?.toString() ?? '';
+    frontIpa = frontMap['ipa']?.toString() ?? '';
+    final fi = frontMap['image']?.toString();
+    frontImage = (fi == null || fi.isEmpty) ? null : fi;
+    final fa = frontMap['audio']?.toString();
+    frontAudio = (fa == null || fa.isEmpty) ? null : fa;
+    final fo = frontMap['options'];
+    if (fo is YamlList) {
+      frontOptions = List.unmodifiable(fo.map((e) => e.toString()).toList());
+    }
+  }
+
+  if (frontQuestion.isEmpty) return null;
+
+  final backMap = map['back'];
+  String backAnswer = '';
+  String backLatex = '';
+  String backIpa = '';
+  String? backImage;
+  String? backAudio;
+  List<String> backOptions = const [];
+
+  if (backMap is YamlMap) {
+    backAnswer = backMap['answer']?.toString() ?? '';
+    backLatex = backMap['latex']?.toString() ?? '';
+    backIpa = backMap['ipa']?.toString() ?? '';
+    final bi = backMap['image']?.toString();
+    backImage = (bi == null || bi.isEmpty) ? null : bi;
+    final ba = backMap['audio']?.toString();
+    backAudio = (ba == null || ba.isEmpty) ? null : ba;
+    final bo = backMap['options'];
+    if (bo is YamlList) {
+      backOptions = List.unmodifiable(bo.map((e) => e.toString()).toList());
+    }
+  }
+
+  return CardModel(
+    title: title,
+    frontQuestion: frontQuestion,
+    frontLatexString: frontLatex,
+    frontIpaString: frontIpa,
+    frontImage: frontImage,
+    frontAudio: frontAudio,
+    frontOptions: frontOptions,
+    backAnswer: backAnswer,
+    backLatexString: backLatex,
+    backIpaString: backIpa,
+    backImage: backImage,
+    backAudio: backAudio,
+    backOptions: backOptions,
+  );
+}
+
+/// Serialises deck metadata and a list of cards to YAML.
+String buildDeckYaml(String deckName, String mode, List<CardModel> cards) {
+  final buf = StringBuffer();
+  buf.writeln('deckname: ${_q(deckName)}');
+  buf.writeln('mode: ${_q(mode)}');
+  if (cards.isEmpty) {
+    buf.writeln('cards: []');
+    return buf.toString();
+  }
+  buf.writeln('cards:');
+  for (final card in cards) {
+    buf.writeln('  - title: ${_q(card.title)}');
+    buf.writeln('    front:');
+    buf.writeln('      question: ${_q(card.frontQuestion)}');
+    if (card.frontLatexString.isNotEmpty) {
+      buf.writeln('      latex: ${_q(card.frontLatexString)}');
+    }
+    if (card.frontIpaString.isNotEmpty) {
+      buf.writeln('      ipa: ${_q(card.frontIpaString)}');
+    }
+    if (card.frontImage != null) {
+      buf.writeln('      image: ${_q(card.frontImage!)}');
+    }
+    if (card.frontAudio != null) {
+      buf.writeln('      audio: ${_q(card.frontAudio!)}');
+    }
+    if (card.frontOptions.isNotEmpty) {
+      buf.writeln('      options:');
+      for (final opt in card.frontOptions) {
+        buf.writeln('        - ${_q(opt)}');
+      }
+    }
+    buf.writeln('    back:');
+    buf.writeln('      answer: ${_q(card.backAnswer)}');
+    if (card.backLatexString.isNotEmpty) {
+      buf.writeln('      latex: ${_q(card.backLatexString)}');
+    }
+    if (card.backIpaString.isNotEmpty) {
+      buf.writeln('      ipa: ${_q(card.backIpaString)}');
+    }
+    if (card.backImage != null) {
+      buf.writeln('      image: ${_q(card.backImage!)}');
+    }
+    if (card.backAudio != null) {
+      buf.writeln('      audio: ${_q(card.backAudio!)}');
+    }
+    if (card.backOptions.isNotEmpty) {
+      buf.writeln('      options:');
+      for (final opt in card.backOptions) {
+        buf.writeln('        - ${_q(opt)}');
+      }
+    }
+  }
+  return buf.toString();
+}
+
+// ── Legacy format ─────────────────────────────────────────────────────────────
+
+DeckContents _parseDeckLegacy(String content) {
+  final segments = _splitOnSeparator(content);
   var deckName = '';
   var mode = 'Normal';
   final cards = <CardModel>[];
@@ -42,16 +199,14 @@ DeckContents parseDeck(String content) {
         .where((l) => l.isNotEmpty)
         .toList();
     if (lines.isEmpty) continue;
-    final card = _parseCardBlock(lines);
+    final card = _parseLegacyCardBlock(lines);
     if (card != null) cards.add(card);
   }
 
   return DeckContents(deckName: deckName, mode: mode, cards: cards);
 }
 
-/// Splits [content] on lines that contain only `---`, returning each segment
-/// as a string (the separators themselves are not included).
-List<String> splitOnDeckSeparator(String content) {
+List<String> _splitOnSeparator(String content) {
   final lines = content
       .replaceAll('\r\n', '\n')
       .replaceAll('\r', '\n')
@@ -70,50 +225,7 @@ List<String> splitOnDeckSeparator(String content) {
   return segments;
 }
 
-/// Extracts the `Cardtitle:` value from a parsed card block (list of lines).
-/// Returns `'?'` if the field is absent — used for human-readable error messages.
-String cardTitleFromBlock(List<String> lines) {
-  for (final l in lines) {
-    if (l.startsWith('Cardtitle:')) {
-      return l.substring('Cardtitle:'.length).trim();
-    }
-  }
-  return '?';
-}
-
-/// Serialises deck metadata and a list of cards back to the on-disk text format.
-String buildDeckText(String deckName, String mode, List<CardModel> cards) {
-  final buf = StringBuffer();
-  buf.writeln('Deckname: $deckName');
-  buf.writeln('Available modes: $mode');
-  if (cards.isEmpty) return buf.toString();
-  for (final card in cards) {
-    buf.writeln('---');
-    buf.writeln('Cardtitle: ${card.title}');
-    buf.writeln('Front question: ${card.frontQuestion}');
-    buf.writeln('Front latex string: ${card.frontLatexString}');
-    buf.writeln('Front IPA string: ${card.frontIpaString}');
-    buf.writeln("Front image: ${card.frontImage ?? ''}");
-    buf.writeln("Front audio: ${card.frontAudio ?? ''}");
-    for (int i = 0; i < card.frontOptions.length; i++) {
-      buf.writeln('Front option${i + 1}: ${card.frontOptions[i]}');
-    }
-    buf.writeln();
-    buf.writeln('Back answer: ${card.backAnswer}');
-    buf.writeln('Back latex string: ${card.backLatexString}');
-    buf.writeln('Back IPA string: ${card.backIpaString}');
-    buf.writeln("Back image: ${card.backImage ?? ''}");
-    buf.writeln("Back audio: ${card.backAudio ?? ''}");
-    for (int i = 0; i < card.backOptions.length; i++) {
-      buf.writeln('Back option${i + 1}: ${card.backOptions[i]}');
-    }
-  }
-  return buf.toString();
-}
-
-// ── Private helpers ──────────────────────────────────────────────────────────
-
-CardModel? _parseCardBlock(List<String> lines) {
+CardModel? _parseLegacyCardBlock(List<String> lines) {
   final fields = <String, String>{};
   final frontOptions = <String>[];
   final backOptions = <String>[];
@@ -180,3 +292,8 @@ CardModel? _parseCardBlock(List<String> lines) {
     backOptions: List.unmodifiable(backOptions),
   );
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/// Wraps [s] in YAML single quotes, escaping internal single quotes as ''.
+String _q(String s) => "'${s.replaceAll("'", "''")}'";

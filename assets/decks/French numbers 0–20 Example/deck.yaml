@@ -1,0 +1,192 @@
+deckname: 'French numbers 0–20 Example'
+mode: 'Normal'
+cards:
+  - title: '0 – zéro'
+    front:
+      question: '0'
+      image: 'front/zero.png'
+    back:
+      answer: 'zéro'
+      ipa: '/zeʁo/'
+      image: 'front/zero.png'
+      audio: 'back/zéro.mp3'
+  - title: '1 – un'
+    front:
+      question: '1'
+      image: 'front/un.png'
+    back:
+      answer: 'un'
+      ipa: '/œ̃/'
+      image: 'front/un.png'
+      audio: 'back/un.mp3'
+  - title: '2 – deux'
+    front:
+      question: '2'
+      image: 'front/deux.png'
+    back:
+      answer: 'deux'
+      ipa: '/dø/'
+      image: 'front/deux.png'
+      audio: 'back/deux.mp3'
+  - title: '3 – trois'
+    front:
+      question: '3'
+      image: 'front/trois.png'
+    back:
+      answer: 'trois'
+      ipa: '/tʁwɑ/'
+      image: 'front/trois.png'
+      audio: 'back/trois.mp3'
+  - title: '4 – quatre'
+    front:
+      question: '4'
+      image: 'front/quatre.png'
+    back:
+      answer: 'quatre'
+      ipa: '/katʁ/'
+      image: 'front/quatre.png'
+      audio: 'back/quatre.mp3'
+  - title: '5 – cinq'
+    front:
+      question: '5'
+      image: 'front/cinq.png'
+    back:
+      answer: 'cinq'
+      ipa: '/sɛ̃k/'
+      image: 'front/cinq.png'
+      audio: 'back/cinq.mp3'
+  - title: '6 – six'
+    front:
+      question: '6'
+      image: 'front/six.png'
+    back:
+      answer: 'six'
+      ipa: '/sis/'
+      image: 'front/six.png'
+      audio: 'back/six.mp3'
+  - title: '7 – sept'
+    front:
+      question: '7'
+      image: 'front/sept.png'
+    back:
+      answer: 'sept'
+      ipa: '/sɛt/'
+      image: 'front/sept.png'
+      audio: 'back/sept.mp3'
+  - title: '8 – huit'
+    front:
+      question: '8'
+      image: 'front/huit.png'
+    back:
+      answer: 'huit'
+      ipa: '/ɥit/'
+      image: 'front/huit.png'
+      audio: 'back/huit.mp3'
+  - title: '9 – neuf'
+    front:
+      question: '9'
+      image: 'front/neuf.png'
+    back:
+      answer: 'neuf'
+      ipa: '/nœf/'
+      image: 'front/neuf.png'
+      audio: 'back/neuf.mp3'
+  - title: '10 – dix'
+    front:
+      question: '10'
+      image: 'front/dix.png'
+    back:
+      answer: 'dix'
+      ipa: '/dis/'
+      image: 'front/dix.png'
+      audio: 'back/dix.mp3'
+  - title: '11 – onze'
+    front:
+      question: '11'
+      image: 'front/onze.png'
+    back:
+      answer: 'onze'
+      ipa: '/ɔ̃z/'
+      image: 'front/onze.png'
+      audio: 'back/onze.mp3'
+  - title: '12 – douze'
+    front:
+      question: '12'
+      image: 'front/douze.png'
+    back:
+      answer: 'douze'
+      ipa: '/duz/'
+      image: 'front/douze.png'
+      audio: 'back/douze.mp3'
+  - title: '13 – treize'
+    front:
+      question: '13'
+      image: 'front/treize.png'
+    back:
+      answer: 'treize'
+      ipa: '/tʁɛz/'
+      image: 'front/treize.png'
+      audio: 'back/treize.mp3'
+  - title: '14 – quatorze'
+    front:
+      question: '14'
+      image: 'front/quatorze.png'
+    back:
+      answer: 'quatorze'
+      ipa: '/katɔʁz/'
+      image: 'front/quatorze.png'
+      audio: 'back/quatorze.mp3'
+  - title: '15 – quinze'
+    front:
+      question: '15'
+      image: 'front/quinze.png'
+    back:
+      answer: 'quinze'
+      ipa: '/kɛ̃z/'
+      image: 'front/quinze.png'
+      audio: 'back/quinze.mp3'
+  - title: '16 – seize'
+    front:
+      question: '16'
+      image: 'front/seize.png'
+    back:
+      answer: 'seize'
+      ipa: '/sɛz/'
+      image: 'front/seize.png'
+      audio: 'back/seize.mp3'
+  - title: '17 – dix-sept'
+    front:
+      question: '17'
+      image: 'front/dix-sept.png'
+    back:
+      answer: 'dix-sept'
+      ipa: '/dis sɛt/'
+      image: 'front/dix-sept.png'
+      audio: 'back/dix-sept.mp3'
+  - title: '18 – dix-huit'
+    front:
+      question: '18'
+      image: 'front/dix-huit.png'
+    back:
+      answer: 'dix-huit'
+      ipa: '/dizɥit/'
+      image: 'front/dix-huit.png'
+      audio: 'back/dix-huit.mp3'
+  - title: '19 – dix-neuf'
+    front:
+      question: '19'
+      image: 'front/dix-neuf.png'
+    back:
+      answer: 'dix-neuf'
+      ipa: '/diznœf/'
+      image: 'front/dix-neuf.png'
+      audio: 'back/dix-neuf.mp3'
+  - title: '20 – vingt'
+    front:
+      question: '20'
+      image: 'front/vingt.png'
+    back:
+      answer: 'vingt'
+      ipa: '/vɛ̃/'
+      image: 'front/vingt.png'
+      audio: 'back/vingt.mp3'
