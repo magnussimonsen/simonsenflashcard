@@ -16,11 +16,11 @@ PrivilegesRequired=lowest
 Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\Simonsen Flashcard"; Filename: "{app}\simonsenflashcard.exe"
-Name: "{commondesktop}\Simonsen Flashcard"; Filename: "{app}\simonsenflashcard.exe"; Tasks: desktopicon
+Name: "{userprograms}\Simonsen Flashcard"; Filename: "{app}\flashcard_app.exe"
+Name: "{userdesktop}\Simonsen Flashcard"; Filename: "{app}\flashcard_app.exe"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"
 
 [Run]
-Filename: "{app}\simonsenflashcard.exe"; Description: "Launch Simonsen Flashcard"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\flashcard_app.exe"; Description: "Launch Simonsen Flashcard"; Flags: nowait postinstall skipifsilent
