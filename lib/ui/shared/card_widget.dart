@@ -430,12 +430,6 @@ class _CardContentState extends State<_CardContent> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Text( // Commented out becouse of spaece issues, but could be added back in if we make the type-answer zone bigger
-                          //  'You typed:',
-                          //  style: Theme.of(
-                          //    context,
-                          //  ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-                          // ),
                           const SizedBox(height: 4),
                           Text(
                             _typeAnswerController.text,

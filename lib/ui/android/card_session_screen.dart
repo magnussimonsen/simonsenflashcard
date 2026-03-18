@@ -63,7 +63,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
   CardEntry get _currentEntry => _activeEntries[_currentIndex];
 
   void _flip() {
-    setState(() => _isFlipped = true);
+    if (!_isFlipped && !_limitReached) setState(() => _isFlipped = true);
   }
 
   Future<void> _rate(CardRating rating) async {
@@ -73,6 +73,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
       _currentEntry.card.title,
       rating,
     );
+    if (!mounted) return;
     setState(() {
       switch (rating) {
         case CardRating.again:
@@ -162,8 +163,12 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
             ),
             TextButton(
               onPressed: () {
-                final parsed = int.tryParse(limitController.text.trim());
-                tempLimit = (parsed != null && parsed > 0) ? parsed : null;
+                if (tempMode == SessionMode.weightedRepetition) {
+                  final parsed = int.tryParse(limitController.text.trim());
+                  tempLimit = (parsed != null && parsed > 0) ? parsed : null;
+                } else {
+                  tempLimit = null;
+                }
                 Navigator.pop(ctx);
               },
               child: const Text('Apply'),
@@ -227,17 +232,45 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     );
     if (!isExample) {
       if (!mounted) return;
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) =>
               DeckEditorScreen(deckFolderPath: widget.session.folderPath),
         ),
       );
+      await _reloadSessionEntries();
       return;
     }
     if (!mounted) return;
     await _showExampleDeckEditPrompt();
+  }
+
+  /// Reloads entries and stats from disk into the live session after the
+  /// deck editor returns. Keeps [_currentIndex] in bounds.
+  Future<void> _reloadSessionEntries() async {
+    final path = widget.session.folderPath;
+    if (path.isEmpty || !mounted) return;
+    try {
+      final fresh = await DeckService().loadSession(path);
+      if (!mounted) return;
+      widget.session.entries
+        ..clear()
+        ..addAll(fresh.entries);
+      widget.session.statsCache
+        ..clear()
+        ..addAll(fresh.statsCache);
+      widget.session.deckName = fresh.deckName;
+      setState(() {
+        if (_activeEntries.isEmpty) {
+          _currentIndex = 0;
+        } else if (_currentIndex >= _activeEntries.length) {
+          _currentIndex = _activeEntries.length - 1;
+        }
+      });
+    } catch (_) {
+      // Reload failed — continue with existing session data.
+    }
   }
 
   /// Shows "Example decks cannot be edited — clone it?" dialog.
@@ -567,6 +600,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         ],
       ),
     );
+    nameController.dispose();
     if (newName == null || newName.isEmpty) return;
     if (!mounted) return;
     try {
@@ -609,7 +643,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                   await _showExampleDeckEditPrompt();
                   return;
                 }
-                Navigator.push(
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => DeckEditorScreen(
@@ -617,6 +651,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     ),
                   ),
                 );
+                await _reloadSessionEntries();
               },
             ),
             ListTile(
@@ -632,7 +667,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                   await _showExampleDeckEditPrompt();
                   return;
                 }
-                Navigator.push(
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => DeckEditorScreen(
@@ -640,6 +675,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     ),
                   ),
                 );
+                await _reloadSessionEntries();
               },
             ),
             ListTile(

@@ -1,5 +1,5 @@
-// This file contains constants used by the backend and UI
-// This structure make it easy to change things app title globaly
+// This file contains constants used by the backend and UI.
+// Centralising them here makes it easy to change values globally (e.g. app title).
 const String appTitle = 'Simonsen Flashcard - The easy to use flashcard app';
 
 /// The folder name of the example deck that is pre-selected on first launch.
@@ -107,5 +107,5 @@ const List<({String term, String definition})> keyConcepts = [
     definition:
         'You remembered instantly. '
         'The card will appear rarely in Weighted Repetition.',
-  )
+  ),
 ];

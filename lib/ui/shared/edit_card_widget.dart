@@ -228,9 +228,27 @@ class _EditCardWidgetState extends State<EditCardWidget> {
     required TextEditingController ctrl,
     required String subFolder, // e.g. 'images/front', 'audio/back'
   }) async {
+    // Guard: deckFolderPath must be an absolute path to a saved deck folder.
+    // An empty string (Android unsaved deck) would produce a root-level path,
+    // and a bare deck name (desktop unsaved deck) would produce a path relative
+    // to the app's CWD — both would place files in the wrong location.
+    final deckPath = widget.deckFolderPath;
+    final bool isAbsolute =
+        deckPath.startsWith('/') ||
+        (deckPath.length >= 3 &&
+            deckPath[1] == ':' &&
+            (deckPath[2] == '\\' || deckPath[2] == '/'));
+    if (!isAbsolute) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Save the deck first before adding media files.'),
+        ),
+      );
+      return;
+    }
     final file = await openFile(acceptedTypeGroups: typeGroups);
     if (file == null) return;
-    final assetsDir = Directory('${widget.deckFolderPath}/assets/$subFolder');
+    final assetsDir = Directory('$deckPath/assets/$subFolder');
     if (!await assetsDir.exists()) await assetsDir.create(recursive: true);
     // Build a collision-proof destination filename.
     final dotIdx = file.name.lastIndexOf('.');

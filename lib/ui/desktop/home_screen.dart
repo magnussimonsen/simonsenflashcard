@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_selector/file_selector.dart';
 import '../../backend/constants.dart';
 import '../../backend/deck_service.dart';
+import '../../utils/path_utils.dart';
 import '../shared/key_concepts_dialog.dart';
 import '../shared/about_dialog.dart';
 import 'card_session_screen.dart';
@@ -37,8 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String _deckDisplayName(String path) =>
-      path.replaceAll('\\', '/').split('/').where((s) => s.isNotEmpty).last;
+  String _deckDisplayName(String path) => deckFolderName(path);
 
   Future<void> _openFromList(BuildContext context) async {
     if (_deckPaths.isEmpty) {

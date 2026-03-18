@@ -29,7 +29,6 @@ class DeckService {
   /// Sentinel file written into every example deck folder when it is deployed.
   /// Its presence means the deck is read-only (example deck).
   static const String exampleSentinelName = '.example';
-  static const String _exampleSentinel = exampleSentinelName;
 
   /// Returns `true` if the deck at [folderPath] is an example deck
   /// (i.e. was shipped with the app and has not been cloned by the user).
@@ -218,7 +217,7 @@ class DeckService {
       }
     }
     // Mark as example deck.
-    await File('$destDirPath/$_exampleSentinel').writeAsString('');
+    await File('$destDirPath/$exampleSentinelName').writeAsString('');
   }
 
   /// Re-copy all example decks bundled in assets back to the Simonsen Flashcard

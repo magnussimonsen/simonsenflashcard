@@ -76,6 +76,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
       _currentEntry.card.title,
       rating,
     );
+    if (!mounted) return;
     setState(() {
       switch (rating) {
         case CardRating.again:
@@ -168,8 +169,12 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
               ),
               TextButton(
                 onPressed: () {
-                  final parsed = int.tryParse(limitController.text.trim());
-                  tempLimit = (parsed != null && parsed > 0) ? parsed : null;
+                  if (tempMode == SessionMode.weightedRepetition) {
+                    final parsed = int.tryParse(limitController.text.trim());
+                    tempLimit = (parsed != null && parsed > 0) ? parsed : null;
+                  } else {
+                    tempLimit = null;
+                  }
                   Navigator.pop(ctx);
                 },
                 child: const Text('Apply'),
@@ -460,6 +465,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         ),
       ),
     );
+    nameController.dispose();
     if (newName == null || newName.isEmpty) return;
     if (!mounted) return;
     try {
@@ -468,7 +474,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Deck saved as "$newName"')));
-      // Refresh title
+      // Refresh title bar.
       setState(() {});
     } on ArgumentError catch (e) {
       if (!mounted) return;

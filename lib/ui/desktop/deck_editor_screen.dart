@@ -100,7 +100,11 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
       _deckService
           .saveDeck(_session!)
           .then((_) {
-            if (mounted) setState(() => _unsavedChanges = false);
+            if (!mounted) return;
+            setState(() => _unsavedChanges = false);
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('"${updated.title}" saved')));
           })
           .catchError((e) {
             if (mounted) {
@@ -111,10 +115,10 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
           });
     } else {
       setState(() => _unsavedChanges = true);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('"${updated.title}" saved')));
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('"${updated.title}" saved')));
   }
 
   void _deleteCard(int entryIndex) {
@@ -251,7 +255,6 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
-          actions: [],
         ),
         body: Row(
           children: [
