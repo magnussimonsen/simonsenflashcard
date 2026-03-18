@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:yaml/yaml.dart';
 
 /// Static format and output rules for the AI deck prompt.
 /// The task/topic line is assembled dynamically from the user's description.
@@ -44,6 +45,8 @@ RULES
 ═══════════════════════════════════════
 • The section labels in this spec (lines starting with ─── or ═══) are
   documentation only — do NOT include them in the generated file.
+• Indentation does NOT matter — the app fixes it automatically. You may output
+  every key at column 0 with no leading spaces if that is easier.
 • 'deckname:' and 'mode:' must appear before the 'cards:' list.
 • Every card MUST have 'title:' (unique across the deck) and a front 'question:'.
 • Omit any optional field that is not used — do NOT include empty lines or values.
@@ -140,9 +143,95 @@ class _AiPromptScreenState extends State<AiPromptScreen> {
     ).showSnackBar(const SnackBar(content: Text('Prompt copied to clipboard')));
   }
 
+  /// Strips markdown code fences and converts tabs to spaces.
+  /// These are the two most common ways AI output gets corrupted in transit.
+  String _sanitize(String raw) {
+    var s = raw.trim();
+    // Strip leading ```yaml / ```YAML / ``` fence
+    s = s.replaceFirst(RegExp(r'^```[a-zA-Z]*\n?'), '');
+    // Strip trailing ``` fence
+    s = s.replaceFirst(RegExp(r'\n?```\s*$'), '');
+    // Convert tabs to 2 spaces (YAML is space-only)
+    s = s.replaceAll('\t', '  ');
+    return s.trim();
+  }
+
+  /// Re-indents a flat (zero-indentation) deck according to the known schema.
+  /// AI chat UIs sometimes strip all leading whitespace from YAML output.
+  static String _reindent(String flat) {
+    final out = <String>[];
+    bool inOptions = false;
+    for (var line in flat.split('\n')) {
+      final t = line.trim();
+      if (t.isEmpty) continue;
+      // Option list item under 'options:'
+      if (inOptions && t.startsWith('- ')) {
+        out.add('        $t'); // 8 spaces
+        continue;
+      }
+      final colonIdx = t.indexOf(':');
+      if (colonIdx < 0) {
+        out.add(t);
+        continue;
+      }
+      final key = t.substring(0, colonIdx).trim().toLowerCase();
+      switch (key) {
+        case 'deckname':
+        case 'mode':
+        case 'cards':
+          inOptions = false;
+          out.add(t);
+        case 'title':
+          inOptions = false;
+          out.add('  - $t'); // list item under cards
+        case 'front':
+        case 'back':
+          inOptions = false;
+          out.add('    $t'); // 4 spaces under card
+        case 'question':
+        case 'answer':
+        case 'latex':
+        case 'ipa':
+          inOptions = false;
+          out.add('      $t'); // 6 spaces under front/back
+        case 'options':
+          inOptions = true;
+          out.add('      $t'); // 6 spaces under front/back
+        default:
+          out.add(t);
+      }
+    }
+    return out.join('\n');
+  }
+
+  /// Validates the pasted text and tries to auto-fix common AI output issues.
+  /// Returns (fixedContent, wasReindented, errorMessage).
+  /// errorMessage is null when the content is valid.
+  (String, bool, String?) _validateAndFix() {
+    final raw = _outputController.text;
+    if (raw.trim().isEmpty) return ('', false, null);
+    final step1 = _sanitize(raw);
+    try {
+      loadYaml(step1);
+      return (step1, false, null);
+    } catch (_) {}
+    // Try re-indenting (handles flat AI output with no indentation).
+    final step2 = _reindent(step1);
+    try {
+      loadYaml(step2);
+      return (step2, true, null);
+    } catch (e) {
+      return (
+        step1,
+        false,
+        e.toString().replaceFirst(RegExp(r'^YamlException:\s*'), ''),
+      );
+    }
+  }
+
   Future<void> _saveYaml() async {
-    final content = _outputController.text.trim();
-    if (content.isEmpty) return;
+    final (content, _, err) = _validateAndFix();
+    if (content.isEmpty || err != null) return;
     // Suggest a filename based on the deckname field in the pasted YAML.
     final match = RegExp(
       r"deckname:\s*'([^']+)'",
@@ -160,9 +249,9 @@ class _AiPromptScreenState extends State<AiPromptScreen> {
       if (location == null || !mounted) return;
       await File(location.path).writeAsString(content);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Saved to ${location.path}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Saved to ${location.path}')));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -174,17 +263,7 @@ class _AiPromptScreenState extends State<AiPromptScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Use AI to generate a deck'),
-        actions: [
-          TextButton.icon(
-            icon: const Icon(Icons.copy),
-            label: const Text('Copy prompt'),
-            onPressed: _copyPrompt,
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Use AI to generate a deck')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -263,9 +342,9 @@ class _AiPromptScreenState extends State<AiPromptScreen> {
               children: [
                 Text(
                   'Step 3 — Paste the AI response and save as a deck file',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -279,14 +358,56 @@ class _AiPromptScreenState extends State<AiPromptScreen> {
                   onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 8),
+                // Live validation status
+                if (_outputController.text.trim().isNotEmpty)
+                  Builder(
+                    builder: (ctx) {
+                      final (_, autoFixed, err) = _validateAndFix();
+                      final Color color;
+                      final IconData icon;
+                      final String message;
+                      if (err != null) {
+                        color = Colors.red;
+                        icon = Icons.error;
+                        message = err;
+                      } else if (autoFixed) {
+                        color = Colors.orange;
+                        icon = Icons.auto_fix_high;
+                        message =
+                            'Indentation was auto-fixed — please review before saving.';
+                      } else {
+                        color = Colors.green;
+                        icon = Icons.check_circle;
+                        message = 'Valid YAML — ready to save';
+                      }
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(icon, size: 16, color: color),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              message,
+                              style: Theme.of(
+                                ctx,
+                              ).textTheme.bodySmall?.copyWith(color: color),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                const SizedBox(height: 8),
                 FilledButton.icon(
                   icon: const Icon(Icons.download),
                   label: const Text('Save deck file (.yaml)'),
-                  onPressed:
-                      _outputController.text.trim().isEmpty ? null : _saveYaml,
+                  onPressed: _outputController.text.trim().isEmpty
+                      ? null
+                      : _saveYaml,
                 ),
                 const SizedBox(height: 4),
                 Text(
+                  'Code fences and tabs are fixed automatically. '
                   'Then import the saved file with "Import deck" in the app menu.',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

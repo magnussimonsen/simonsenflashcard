@@ -840,6 +840,18 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                 ),
                 IconButton(
                   icon: Icon(
+                    Icons.school,
+                    color: _sessionMode != SessionMode.review
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                  ),
+                  tooltip: _sessionMode == SessionMode.weightedRepetition
+                      ? 'Weighted repetition (tap to change)'
+                      : 'Review mode (tap to change)',
+                  onPressed: _showSrsSettings,
+                ),
+                IconButton(
+                  icon: Icon(
                     _isReversed ? Icons.arrow_back : Icons.arrow_forward,
                     color: _isReversed
                         ? Theme.of(context).colorScheme.tertiary
