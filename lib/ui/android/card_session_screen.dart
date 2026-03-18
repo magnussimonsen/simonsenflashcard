@@ -619,51 +619,8 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     final hasImage = card.frontImage != null || card.backImage != null;
     return Scaffold(
       appBar: AppBar(
-        title: Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text:
-                    '${widget.session.deckName}: Card ${_currentIndex + 1} of $total',
-              ),
-              if (_showSessionStats)
-                ...([
-                  const TextSpan(text: '  '),
-                  TextSpan(
-                    text: 'A:$_sessionAgain ',
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  TextSpan(
-                    text: 'H:$_sessionHard ',
-                    style: TextStyle(
-                      color: Colors.orange[800],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  TextSpan(
-                    text: 'G:$_sessionGood ',
-                    style: TextStyle(
-                      color: Colors.green[700],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  TextSpan(
-                    text: 'E:$_sessionEasy',
-                    style: TextStyle(
-                      color: Colors.blue[600],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ]),
-            ],
-          ),
+        title: Text(
+          '${widget.session.deckName}: Card ${_currentIndex + 1} of $total',
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
@@ -827,6 +784,49 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
       ),
       body: Column(
         children: [
+          if (_showSessionStats)
+            ColoredBox(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      'Again: $_sessionAgain',
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Hard: $_sessionHard',
+                      style: TextStyle(
+                        color: Colors.orange[800],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Good: $_sessionGood',
+                      style: TextStyle(
+                        color: Colors.green[700],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Easy: $_sessionEasy',
+                      style: TextStyle(
+                        color: Colors.blue[600],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           Expanded(
             child: CardWidget(
               card: card,
