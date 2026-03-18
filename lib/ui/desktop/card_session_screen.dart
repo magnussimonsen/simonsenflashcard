@@ -29,7 +29,7 @@ enum _DeckMenuAction {
   srsSettings,
 }
 
-enum _SessionMode { reviewMode, sessionMode, crammerMode }
+// SessionMode is defined in constants.dart
 
 /// Desktop: screen for reviewing cards in a deck session.
 /// Keyboard shortcuts: Space = flip, 1 = Again, 2 = Hard, 3 = Good, 4 = Easy.
@@ -55,13 +55,18 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
   int _sessionGood = 0;
   int _sessionEasy = 0;
   bool _showSessionStats = true;
-  _SessionMode _sessionMode = _SessionMode.reviewMode;
+  SessionMode _sessionMode = defaultSessionMode;
+  int? _sessionCardLimit = defaultSessionCardLimit;
+  int _sessionReviewCount = 0;
+
+  bool get _limitReached =>
+      _sessionCardLimit != null && _sessionReviewCount >= _sessionCardLimit!;
 
   List<CardEntry> get _activeEntries => widget.session.activeEntries;
   CardEntry get _currentEntry => _activeEntries[_currentIndex];
 
   void _flip() {
-    if (!_isFlipped) setState(() => _isFlipped = true);
+    if (!_isFlipped && !_limitReached) setState(() => _isFlipped = true);
   }
 
   Future<void> _rate(CardRating rating) async {
@@ -82,10 +87,104 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         case CardRating.easy:
           _sessionEasy++;
       }
-      _currentIndex = _activeEntries.isEmpty
-          ? 0
-          : (_currentIndex + 1) % _activeEntries.length;
+      _sessionReviewCount++;
+      if (_sessionMode == SessionMode.weightedRepetition) {
+        _currentIndex = _activeEntries.isEmpty
+            ? 0
+            : StatsService.pickWeightedIndex(
+                _activeEntries,
+                widget.session.statsCache,
+                exclude: _currentIndex,
+              );
+      } else {
+        _currentIndex = _activeEntries.isEmpty
+            ? 0
+            : (_currentIndex + 1) % _activeEntries.length;
+      }
       _isFlipped = false;
+    });
+  }
+
+  Future<void> _showSrsSettings() async {
+    var tempMode = _sessionMode;
+    var tempLimit = _sessionCardLimit;
+    final limitController = TextEditingController(
+      text: tempLimit?.toString() ?? '',
+    );
+    await _withKeyboardPaused(
+      () => showDialog<void>(
+        context: context,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setDialogState) => AlertDialog(
+            title: const Text('Study mode settings'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Study mode',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                RadioGroup<SessionMode>(
+                  groupValue: tempMode,
+                  onChanged: (v) => setDialogState(() => tempMode = v!),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      RadioListTile<SessionMode>(
+                        title: Text('Review (sequential)'),
+                        subtitle: Text('All cards in order'),
+                        value: SessionMode.review,
+                      ),
+                      RadioListTile<SessionMode>(
+                        title: Text('Weighted repetition'),
+                        subtitle: Text(
+                          'Random — harder cards appear more often',
+                        ),
+                        value: SessionMode.weightedRepetition,
+                      ),
+                    ],
+                  ),
+                ),
+                if (tempMode == SessionMode.weightedRepetition) ...[
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Max cards per session',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const Text('Leave empty for unlimited'),
+                  TextField(
+                    controller: limitController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(hintText: 'e.g. 20'),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final parsed = int.tryParse(limitController.text.trim());
+                  tempLimit = (parsed != null && parsed > 0) ? parsed : null;
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Apply'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    limitController.dispose();
+    if (!mounted) return;
+    setState(() {
+      _sessionMode = tempMode;
+      _sessionCardLimit = tempLimit;
+      _sessionReviewCount = 0;
     });
   }
 
@@ -155,9 +254,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
       case _DeckMenuAction.showAbout:
         showAboutAppDialog(context);
       case _DeckMenuAction.srsSettings:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('SRS settings not yet implemented')),
-        );
+        _showSrsSettings();
     }
   }
 
@@ -655,59 +752,17 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     ),
                   ),
                 ),
-                PopupMenuButton<_SessionMode>(
+                IconButton(
                   icon: Icon(
                     Icons.school,
-                    color: _sessionMode != _SessionMode.reviewMode
+                    color: _sessionMode != SessionMode.review
                         ? Theme.of(context).colorScheme.primary
                         : null,
                   ),
-                  tooltip: 'Session mode',
-                  onSelected: (mode) => setState(() => _sessionMode = mode),
-                  itemBuilder: (_) => [
-                    const PopupMenuItem(
-                      value: _SessionMode.reviewMode,
-                      child: Row(
-                        children: [
-                          Text('Normal mode'),
-                          SizedBox(width: 8),
-                          Tooltip(
-                            message:
-                                'Shows only cards that are due today.\nRatings adjust when the card appears next.',
-                            child: Icon(Icons.help_outline, size: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: _SessionMode.sessionMode,
-                      child: Row(
-                        children: [
-                          Text('Session mode'),
-                          SizedBox(width: 8),
-                          Tooltip(
-                            message:
-                                'Shows due cards plus a limited number\nof new cards per sitting.',
-                            child: Icon(Icons.help_outline, size: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: _SessionMode.crammerMode,
-                      child: Row(
-                        children: [
-                          Text('Crammer mode'),
-                          SizedBox(width: 8),
-                          Tooltip(
-                            message:
-                                'Shows all cards regardless of due date.\nUseful for studying before a test.',
-                            child: Icon(Icons.help_outline, size: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  tooltip: _sessionMode == SessionMode.weightedRepetition
+                      ? 'Weighted repetition (tap to change)'
+                      : 'Review mode (tap to change)',
+                  onPressed: _showSrsSettings,
                 ),
 
                 IconButton(
@@ -837,35 +892,53 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (_sessionMode == SessionMode.weightedRepetition &&
+                        _sessionCardLimit != null)
+                      Text(
+                        '$_sessionReviewCount / $_sessionCardLimit',
+                        style: TextStyle(
+                          color: _limitReached
+                              ? Colors.red
+                              : Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                   ],
                 ),
               ),
+            ),
+          if (_limitReached)
+            MaterialBanner(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              content: Text(
+                'Session limit reached ($_sessionCardLimit cards). '
+                'Press "Continue" to keep going or change the limit in SRS settings.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => setState(() => _sessionReviewCount = 0),
+                  child: const Text('Continue'),
+                ),
+                TextButton(
+                  onPressed: _showSrsSettings,
+                  child: const Text('Settings'),
+                ),
+              ],
             ),
           Expanded(
             child: CardWidget(
               card: card,
               isFlipped: _isFlipped,
               isReversed: _isReversed,
-              onTap: _isFlipped ? null : _flip,
+              onTap: (_isFlipped || _limitReached) ? null : _flip,
               deckFolderPath: widget.session.folderPath,
               showImage: _showImage,
               showOptions: _showOptions,
               typeAnswerMode: _typeAnswerMode,
             ),
           ),
-          // Intentionally commented out, but we can always add a toggle for this in the future.
-          // if (_isFlipped)
-          //  Padding(
-          //    padding: const EdgeInsets.only(bottom: 8),
-          //    child: Text(
-          //      'Space = flip  •  1 = Again  •  2 = Hard  •  3 = Good  •  4 = Easy',
-          //      style: Theme.of(
-          //        context,
-          //      ).textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
-          //    ),
-          // ),
           Visibility(
-            visible: _isFlipped,
+            visible: _isFlipped && !_limitReached,
             maintainSize: true,
             maintainAnimation: true,
             maintainState: true,

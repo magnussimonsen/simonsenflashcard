@@ -95,3 +95,269 @@ Back audio: back/coeur.mp3
 Back option1: heart
 Back option2: horse
 Back option3: fish
+---
+Cardtitle: World
+Front question: World
+Front latex string: 
+Front IPA string: /wɜːld/
+Front image: front/world.jpg
+Front audio: 
+Front option1: monde
+Front option2: école
+Front option3: hiver
+
+Back answer: Monde
+Back latex string: 
+Back IPA string: /mɔ̃d/
+Back image: front/world.jpg
+Back audio: back/Monde.mp3
+Back option1: world
+Back option2: school
+Back option3: winter
+---
+Cardtitle: School
+Front question: School
+Front latex string: 
+Front IPA string: /skuːl/
+Front image: front/school.png
+Front audio: 
+Front option1: école
+Front option2: monde
+Front option3: automne
+
+Back answer: École
+Back latex string: 
+Back IPA string: /ekɔl/
+Back image: front/school.png
+Back audio: back/École.mp3
+Back option1: school
+Back option2: world
+Back option3: autumn
+---
+Cardtitle: Winter
+Front question: Winter
+Front latex string: 
+Front IPA string: /ˈvɪntər/
+Front image: front/winter.png
+Front audio: 
+Front option1: hiver
+Front option2: été
+Front option3: printemps
+
+Back answer: Hiver
+Back latex string: 
+Back IPA string: /ivɛʁ/
+Back image: front/winter.png
+Back audio: back/Hiver.mp3
+Back option1: winter
+Back option2: summer
+Back option3: spring
+---
+Cardtitle: Autumn
+Front question: Autumn
+Front latex string: 
+Front IPA string: /ˈɔːtəm/
+Front image: front/autumn.png
+Front audio: 
+Front option1: automne
+Front option2: hiver
+Front option3: printemps
+
+Back answer: Automne
+Back latex string: 
+Back IPA string: /otɔn/
+Back image: front/autumn.png
+Back audio: back/Automne.mp3
+Back option1: autumn
+Back option2: winter
+Back option3: spring
+---
+Cardtitle: Spring
+Front question: Spring
+Front latex string: 
+Front IPA string: /sprɪŋ/
+Front image: front/spring.png
+Front audio: 
+Front option1: printemps
+Front option2: automne
+Front option3: été
+
+Back answer: Printemps
+Back latex string: 
+Back IPA string: /pʁɛ̃tɑ̃/
+Back image: front/spring.png
+Back audio: back/Printemps.mp3
+Back option1: spring
+Back option2: autumn
+Back option3: summer
+---
+Cardtitle: Summer
+Front question: Summer
+Front latex string: 
+Front IPA string: /ˈsʌmər/
+Front image: front/summer.png
+Front audio: 
+Front option1: été
+Front option2: printemps
+Front option3: hiver
+
+Back answer: Été
+Back latex string: 
+Back IPA string: /ete/
+Back image: front/summer.png
+Back audio: back/Été.mp3
+Back option1: summer
+Back option2: spring
+Back option3: winter
+---
+Cardtitle: Warm
+Front question: Warm
+Front latex string: 
+Front IPA string: /wɔːrm/
+Front image: front/warm.png
+Front audio: 
+Front option1: chaud
+Front option2: froid
+Front option3: hiver
+
+Back answer: Chaud
+Back latex string: 
+Back IPA string: /ʃo/
+Back image: front/warm.png
+Back audio: back/Chaud.mp3
+Back option1: warm
+Back option2: cold
+Back option3: winter
+---
+Cardtitle: Cold
+Front question: Cold
+Front latex string: 
+Front IPA string: /koʊld/
+Front image: front/cold.png
+Front audio: 
+Front option1: froid
+Front option2: chaud
+Front option3: été
+
+Back answer: Froid
+Back latex string: 
+Back IPA string: /fʁwa/
+Back image: front/cold.png
+Back audio: back/Froid.mp3
+Back option1: cold
+Back option2: warm
+Back option3: summer
+---
+Cardtitle: Sing
+Front question: Sing
+Front latex string: 
+Front IPA string: /sɪŋ/
+Front image: front/sing.png
+Front audio: 
+Front option1: chanter
+Front option2: danser
+Front option3: nuage
+
+Back answer: Chanter
+Back latex string: 
+Back IPA string: /ʃɑ̃te/
+Back image: front/sing.png
+Back audio: back/Chanter.mp3
+Back option1: sing
+Back option2: dance
+Back option3: rain
+---
+Cardtitle: Dance
+Front question: Dance
+Front latex string: 
+Front IPA string: /dæns/
+Front image: front/dance.png
+Front audio: 
+Front option1: danser
+Front option2: chanter
+Front option3: ciel
+
+Back answer: Danser
+Back latex string: 
+Back IPA string: /dɑ̃se/
+Back image: front/dance.png
+Back audio: back/Danser.mp3
+Back option1: dance
+Back option2: sing
+Back option3: sky
+---
+Cardtitle: Rain
+Front question: Rain
+Front latex string: 
+Front IPA string: /reɪn/
+Front image: front/rain.png
+Front audio: 
+Front option1: pluie
+Front option2: nuage
+Front option3: ciel
+
+Back answer: Pluie
+Back latex string: 
+Back IPA string: /plɥi/
+Back image: front/rain.png
+Back audio: back/Pluie.mp3
+Back option1: rain
+Back option2: cloud
+Back option3: sky
+---
+Cardtitle: Cloud
+Front question: Cloud
+Front latex string: 
+Front IPA string: /klaʊd/
+Front image: front/cloud.png
+Front audio: 
+Front option1: nuage
+Front option2: pluie
+Front option3: ciel
+
+Back answer: Nuage
+Back latex string: 
+Back IPA string: /nɥaʒ/
+Back image: front/cloud.png
+Back audio: back/Nuage.mp3
+Back option1: cloud
+Back option2: rain
+Back option3: sky
+---
+Cardtitle: Sky
+Front question: Sky
+Front latex string: 
+Front IPA string: /skaɪ/
+Front image: front/sky.png
+Front audio: 
+Front option1: ciel
+Front option2: nuage
+Front option3: pluie
+
+Back answer: Ciel
+Back latex string: 
+Back IPA string: /sjɛl/
+Back image: front/sky.png
+Back audio: back/Ciel.mp3
+Back option1: sky
+Back option2: cloud
+Back option3: rain
+---
+Cardtitle: Even though
+Front question: Even though
+Front latex string: 
+Front IPA string: /ˈiːvən ðoʊ/
+Front image: front/even_though.png
+Front audio: 
+Front option1: même si
+Front option2: parce que
+Front option3: donc
+
+Back answer: Même si
+Back latex string: 
+Back IPA string: /mɛm si/
+Back image: front/even_though.png
+Back audio: back/Même_si.mp3
+Back option1: even though
+Back option2: because
+Back option3: therefore

@@ -1,111 +1,59 @@
-# Simonsen Flashcard – Spaced Repetition Algorithm
+# Simonsen Flashcard – Study Algorithm
 
-## Key concepts
+## Overview
 
-| Term                  | Meaning                                                                                                                                                                                                                          |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Spaced repetition** | A study technique where cards are shown at increasing intervals. Cards you find easy are shown less often; cards you struggle with are shown more often. This makes studying more efficient than reviewing everything every day. |
-| **Interval**          | The number of days until a card is shown again. A card with interval 7 will next appear 7 days after you last reviewed it.                                                                                                       |
-| **Due**               | A card is _due_ when today's date has reached or passed its `nextDue` date. Only due cards are shown in a normal study session.                                                                                                  |
-| **New card**          | A card you have never reviewed before. New cards have no interval yet and are introduced gradually (controlled by the _daily new cards_ setting).                                                                                |
-| **Ease factor**       | A per-card multiplier that controls how fast the interval grows. A high ease factor means the interval grows quickly (you find the card easy). A low ease factor means it grows slowly (you find it hard).                       |
-| **Again**             | You did not remember the card. The interval is reset or reduced so the card comes back soon.                                                                                                                                     |
-| **Hard**              | You remembered, but it was difficult. The interval grows only slightly.                                                                                                                                                          |
-| **Good**              | You remembered with normal effort. The interval grows by the ease factor.                                                                                                                                                        |
-| **Easy**              | You remembered instantly. The interval grows faster and the ease factor increases.                                                                                                                                               |
-| **Review**            | One instance of seeing a card and rating it (Again / Hard / Good / Easy).                                                                                                                                                        |
-| **Session**           | One study sitting — all due cards shown, plus a limited number of new cards.                                                                                                                                                     |
-| **Crammer mode**      | A special session that shows all cards regardless of whether they are due. Useful for studying before a test.                                                                                                                    |
+Simonsen Flashcard uses a simple, transparent study system with two modes. There are no hidden parameters or complex scheduling — just two straightforward ways to review a deck.
 
 ---
 
-## Algorithm: Simple Multiplier SRS
+## Study modes
 
-Simonsen Flashcard uses a simplified SM-2-style algorithm. It is intentionally lighter than Anki's FSRS — no magic parameters the user needs to understand, but still a genuine spaced repetition system.
+### Review (sequential)
 
-### Per-card state
+All cards in the deck are shown one by one in their original order. When the last card is reached the deck loops back to the start. No weighting, no randomness — every card is seen equally.
 
-Each card tracks three values in `deck.stats.yaml`:
+**Use case:** First pass through new material, structured linear review.
 
-| Field         | Default | Description                                      |
-| ------------- | ------- | ------------------------------------------------ |
-| `interval`    | `1`     | Current gap in days between reviews              |
-| `easeFactor`  | `2.5`   | Multiplier controlling how fast intervals grow   |
-| `reviewCount` | `0`     | Total number of times the card has been reviewed |
+### Weighted Repetition (random, difficulty-weighted)
 
-The existing `again / hard / good / easy` counters are kept for history display.
+Cards are picked at random for each review, but the probability of picking a card depends on its **last rating**:
 
-### Interval update rules
+| Last rating | Pick weight | Notes                              |
+| ----------- | ----------- | ---------------------------------- |
+| Never seen  | 1.00        | Highest priority — always included |
+| **Again**   | 0.95        | Very likely to reappear            |
+| **Hard**    | 0.70        | Frequently reappears               |
+| **Good**    | 0.40        | Appears at a moderate rate         |
+| **Easy**    | 0.15        | Appears rarely                     |
 
-| Rating    | Interval update      | easeFactor update       |
-| --------- | -------------------- | ----------------------- |
-| **Again** | Reset to `1`         | `− 0.20` (floor: `1.3`) |
-| **Hard**  | `× 1.2`              | `− 0.15`                |
-| **Good**  | `× easeFactor`       | no change               |
-| **Easy**  | `× easeFactor × 1.3` | `+ 0.15`                |
+The last-shown card is excluded from the next pick to avoid immediate repeats.
 
-`nextDue = lastReviewed + interval days`
-
-New (unseen) cards always start at `interval = 1`, `easeFactor = startingEase` (from deck settings).
+**Session limit:** An optional cap on the number of cards reviewed per session. When the limit is reached, rating buttons are disabled and a banner prompts the user to continue or adjust settings.
 
 ---
 
-## Deck settings file: `deck.settings.yaml`
+## Ratings
 
-Stored alongside `deck.txt` in the deck folder. Not created until the user changes a setting (app uses defaults otherwise).
+| Button    | Meaning                               |
+| --------- | ------------------------------------- |
+| **Again** | Did not remember — appears very often |
+| **Hard**  | Remembered, but difficult             |
+| **Good**  | Remembered with normal effort         |
+| **Easy**  | Remembered instantly — appears rarely |
 
-```yaml
-dailyNewCards: 10 # max new cards introduced per day (0 = unlimited)
-dailyReviewLimit: 0 # max due-card reviews per day (0 = unlimited)
-startingEase: 2.5 # easeFactor assigned to new cards (Easy=2.8, Normal=2.5, Hard=2.2)
-againBehaviour:
-  reset # reset | reduce
-  #   reset: Again always sets interval back to 1
-  #   reduce: Again halves the current interval (gentler)
-```
+Each rating is stored as an all-time counter (`again / hard / good / easy`) in `deck.stats.yaml`. The stored counts are used to display per-session statistics in the stats bar and to compute the weight for Weighted Repetition.
 
 ---
 
-## User-facing settings (v1 scope)
+## Per-card state (`deck.stats.yaml`)
 
-Only two settings are exposed in v1. The others are available but hidden behind an "Advanced" section or deferred to v2.
+| Field          | Description                                    |
+| -------------- | ---------------------------------------------- |
+| `again`        | All-time count of Again ratings                |
+| `hard`         | All-time count of Hard ratings                 |
+| `good`         | All-time count of Good ratings                 |
+| `easy`         | All-time count of Easy ratings                 |
+| `lastReviewed` | Timestamp of the most recent review            |
+| `nextDue`      | Retained for weight inference (see note below) |
 
-### v1 – Always visible
-
-| Setting             | UI                            | Default | Notes                                        |
-| ------------------- | ----------------------------- | ------- | -------------------------------------------- |
-| **Daily new cards** | Number field or slider (0–50) | 10      | Most impactful setting for managing workload |
-| **Again behaviour** | Toggle: Reset / Reduce        | Reset   | Determines how punishing the system feels    |
-
-### v2 – Advanced / later
-
-| Setting                | UI                                          | Default   |
-| ---------------------- | ------------------------------------------- | --------- |
-| **Daily review limit** | Dropdown: Unlimited / 50 / 100 / 200        | Unlimited |
-| **Starting ease**      | Dropdown: Easy / Normal / Hard              | Normal    |
-| **Card order**         | Dropdown: Due date / Random                 | Due date  |
-| **Study filter**       | Toggle: Due only / All cards (crammer mode) | Due only  |
-
----
-
-## Session card selection logic
-
-When a session starts, cards are selected in this order:
-
-1. **Due cards** — `nextDue <= today`, ordered by `nextDue` ascending (oldest due first)
-2. **New cards** — unseen cards (`reviewCount == 0`), up to `dailyNewCards` remaining for the day
-3. If `studyFilter == all`, remaining non-due cards are appended after the above
-
-Daily new-card count is tracked in `deck.stats.yaml` under a `dailyNewCardsIntroduced` field that resets when the date changes.
-
----
-
-## Implementation plan
-
-- [ ] Add `interval`, `easeFactor`, `reviewCount` fields to `CardStats`
-- [ ] Update `StatsService.recordRating()` to apply the multiplier rules above
-- [ ] Create `DeckSettings` model and `SettingsService` (load/save `deck.settings.yaml`)
-- [ ] Implement session card selection logic (due first, then new up to daily limit)
-- [ ] Add settings screen (desktop + Android) with v1 settings
-- [ ] Wire `startingEase` into new-card initialisation
-- [ ] Wire `againBehaviour` into `recordRating()`
+> **Note on `nextDue`:** The `nextDue` field is kept from the previous SM-2 implementation and is still written by `recordRating()`. In Weighted Repetition the `nextDue − lastReviewed` interval is used to infer the last rating bucket when individual rating counts cannot distinguish between card histories. This is an implementation convenience and is not exposed to the user.

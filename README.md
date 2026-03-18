@@ -4,6 +4,13 @@ A Flutter flashcard app for Android and desktop. Designed to be simpler than Ank
 
 See [PLANMODE.md](PLANMODE.md) for full design decisions, UI spec, and file format details.
 
+## Screenshots
+
+<img src="screenshots/flash-1.png" width="250"> 
+<img src="screenshots/flash-2.png" width="250"> 
+<img src="screenshots/flash-3.png" width="250"> 
+<img src="screenshots/flash-4.png" width="250">
+
 ## Tech stack
 
 - Flutter (Dart)
@@ -127,34 +134,34 @@ Front option 2: chat
 Front option 3: cheval
 ```
 
-| Field              | Description                                                      |
-| ------------------ | ---------------------------------------------------------------- |
-| `Cardtitle`        | Unique identifier for the card                                   |
-| `Front question`   | Text shown on the front of the card                              |
-| `Back answer`      | Primary answer shown on the back                                 |
-| `Front/Back latex string` | Optional LaTeX expression                                 |
-| `Front/Back IPA string`   | IPA transcription                                         |
-| `Front/Back audio` | Relative path inside `assets/audio/` (e.g. `back/word.mp3`)     |
-| `Front/Back image` | Relative path inside `assets/images/` (e.g. `back/dog.jpg`)     |
-| `Front/Back option N` | Multiple-choice options shown as chips when toggled on       |
+| Field                     | Description                                                 |
+| ------------------------- | ----------------------------------------------------------- |
+| `Cardtitle`               | Unique identifier for the card                              |
+| `Front question`          | Text shown on the front of the card                         |
+| `Back answer`             | Primary answer shown on the back                            |
+| `Front/Back latex string` | Optional LaTeX expression                                   |
+| `Front/Back IPA string`   | IPA transcription                                           |
+| `Front/Back audio`        | Relative path inside `assets/audio/` (e.g. `back/word.mp3`) |
+| `Front/Back image`        | Relative path inside `assets/images/` (e.g. `back/dog.jpg`) |
+| `Front/Back option N`     | Multiple-choice options shown as chips when toggled on      |
 
 Use `none` or leave blank for unused fields. Cards are separated by a line containing only `---`.
 
 ## Hamburger menu (both platforms)
 
-| Item | Description |
-| ---- | ----------- |
-| Open deck | Pick from all available decks |
-| New deck | Create a blank deck |
-| Import deck | Import a `.txt` deck file |
-| Edit current deck | Open the deck editor |
-| Save deck | Overwrite current deck on disk |
-| Save deck as | Save a copy under a new name |
-| Delete deck | Permanently delete the current deck |
-| SRS settings | (not yet implemented) |
-| Help | In-app help screen |
-| Use AI to generate a deck | AI prompt helper |
-| About | App version info |
+| Item                      | Description                         |
+| ------------------------- | ----------------------------------- |
+| Open deck                 | Pick from all available decks       |
+| New deck                  | Create a blank deck                 |
+| Import deck               | Import a `.txt` deck file           |
+| Edit current deck         | Open the deck editor                |
+| Save deck                 | Overwrite current deck on disk      |
+| Save deck as              | Save a copy under a new name        |
+| Delete deck               | Permanently delete the current deck |
+| SRS settings              | (not yet implemented)               |
+| Help                      | In-app help screen                  |
+| Use AI to generate a deck | AI prompt helper                    |
+| About                     | App version info                    |
 
 ## Desktop UI extras
 

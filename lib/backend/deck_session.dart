@@ -1,4 +1,5 @@
 import 'card_entry.dart';
+import 'constants.dart';
 import 'stats_service.dart';
 
 /// The full in-memory representation of one loaded deck.
@@ -9,9 +10,14 @@ class DeckSession {
 
   /// The study mode as written in the deck header (e.g. "Normal").
   /// Preserved on save so the file is never overwritten with a hardcoded value.
-  /// Not yet acted on by the UI — will drive behaviour once mode selection
-  /// is implemented.
   String mode;
+
+  /// Active study mode chosen by the user for this session.
+  SessionMode sessionMode;
+
+  /// Maximum number of card reviews in a weighted-repetition session.
+  /// null means unlimited.
+  int? sessionCardLimit;
 
   final List<CardEntry> entries;
 
@@ -25,6 +31,8 @@ class DeckSession {
     required this.mode,
     required this.entries,
     required this.statsCache,
+    this.sessionMode = defaultSessionMode,
+    this.sessionCardLimit = defaultSessionCardLimit,
   });
 
   /// Non-deleted entries in their original order.

@@ -1,4 +1,8 @@
 import 'dart:io';
+import 'dart:math';
+
+import 'card_entry.dart';
+import 'constants.dart';
 
 /// Rating given by the user when reviewing a card.
 enum CardRating { again, hard, good, easy }
@@ -166,5 +170,56 @@ class StatsService {
       buf.writeln();
     }
     return buf.toString();
+  }
+
+  /// Picks the next card index using weighted-random selection based on each
+  /// card's all-time last rating stored in [cache].
+  ///
+  /// Cards never rated get the highest weight (1.0).
+  /// Cards whose last rating was Again/Hard/Good/Easy get decreasing weights so
+  /// that harder cards appear more often.
+  ///
+  /// [exclude] is the index that was just shown — it is temporarily given a
+  /// weight of 0 to avoid showing the same card twice in a row (unless there
+  /// is only one card).
+  static int pickWeightedIndex(
+    List<CardEntry> entries,
+    Map<String, CardStats> cache, {
+    int? exclude,
+  }) {
+    assert(entries.isNotEmpty);
+    if (entries.length == 1) return 0;
+
+    final weights = List<double>.generate(entries.length, (i) {
+      if (i == exclude) return 0.0;
+      final stats = cache[entries[i].card.title];
+      if (stats == null) return weightedRepetitionWeights['never_seen']!;
+      // Determine last rating from whichever counter is most recent.
+      // We approximate "last rating" from the counters: whichever was
+      // last incremented is not directly stored, so we use nextDue as a proxy:
+      // it is set when a rating is recorded, and its interval encodes the rating.
+      // Fallback: never seen weight if nextDue is null.
+      final nd = stats.nextDue;
+      final lr = stats.lastReviewed;
+      if (nd == null || lr == null) {
+        return weightedRepetitionWeights['never_seen']!;
+      }
+      final daysDue = nd.difference(lr).inDays;
+      // Map interval back to rating bucket using the same thresholds as _daysUntilDue.
+      if (daysDue <= 1) return weightedRepetitionWeights['again']!;
+      if (daysDue <= 3) return weightedRepetitionWeights['hard']!;
+      if (daysDue <= 7) return weightedRepetitionWeights['good']!;
+      return weightedRepetitionWeights['easy']!;
+    });
+
+    final total = weights.fold(0.0, (a, b) => a + b);
+    if (total == 0) return (exclude == 0) ? 1 : 0;
+
+    var roll = Random().nextDouble() * total;
+    for (var i = 0; i < weights.length; i++) {
+      roll -= weights[i];
+      if (roll <= 0) return i;
+    }
+    return weights.length - 1;
   }
 }

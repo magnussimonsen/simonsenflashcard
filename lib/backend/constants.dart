@@ -18,6 +18,35 @@ enum TypeAnswerMode { off, hint0, hint25, hint50, hint75 }
 /// Default type-answer mode for new card sessions.
 const TypeAnswerMode defaultTypeAnswerMode = TypeAnswerMode.off;
 
+/// The two study modes available in a card session.
+enum SessionMode {
+  /// Show all cards in their original order, cycling through them sequentially.
+  review,
+
+  /// Pick cards at random using weights derived from each card's all-time last
+  /// rating.  Cards rated Again are most likely to reappear; cards rated Easy
+  /// are least likely.  Never-seen cards are always included.
+  weightedRepetition,
+}
+
+/// Default session mode when creating a new deck or opening one without a saved preference.
+const SessionMode defaultSessionMode = SessionMode.review;
+
+/// Default max-cards limit for a weighted-repetition session.
+/// null means unlimited.
+const int? defaultSessionCardLimit = null;
+
+/// Repeat-probability weights for [SessionMode.weightedRepetition].
+/// The weight is proportional to how likely a card is to be picked next.
+/// Cards with higher weights are more likely to appear.
+const Map<String, double> weightedRepetitionWeights = {
+  'never_seen': 1.00,
+  'again': 0.95,
+  'hard': 0.70,
+  'good': 0.40,
+  'easy': 0.15,
+};
+
 /// Keyboard-shortcut tooltips shown on the rating buttons (desktop only).
 const String ratingTooltipAgain = 'Again [Key 1]';
 const String ratingTooltipHard = 'Hard [Key 2]';
@@ -27,76 +56,56 @@ const String ratingTooltipEasy = 'Easy [Key 4]';
 /// Key concepts shown in the "How does Simonsen Flashcard work?" dialog.
 const List<({String term, String definition})> keyConcepts = [
   (
-    term: 'Spaced repetition',
+    term: 'Study modes',
     definition:
-        'A study technique where cards are shown at increasing intervals. '
-        'Cards you find easy are shown less often; cards you struggle with are '
-        'shown more often. This makes studying more efficient than reviewing '
-        'everything every day.',
+        'There are two ways to study a deck. '
+        'Review shows every card in order from top to bottom. '
+        'Weighted Repetition picks cards randomly, favouring cards you find harder.',
   ),
   (
-    term: 'Interval',
+    term: 'Review mode',
     definition:
-        'The number of days until a card is shown again. A card with interval '
-        '7 will next appear 7 days after you last reviewed it.',
+        'All cards in the deck are shown one by one in their original order. '
+        'The deck loops back to the start when the last card is reached. '
+        'Good for a first pass through new material or a structured linear review.',
   ),
   (
-    term: 'Due',
+    term: 'Weighted Repetition',
     definition:
-        'A card is due when today\'s date has reached or passed its scheduled '
-        'next-review date. Only due cards are shown in a normal study session.',
+        'Cards are picked at random, but not equally — each card\'s chance of '
+        'appearing is based on its last rating. '
+        'Cards you rated Again appear most often; cards rated Easy appear least often. '
+        'Cards you have never seen are treated as the highest priority.',
   ),
   (
-    term: 'New card',
+    term: 'Session limit',
     definition:
-        'A card you have never reviewed before. New cards have no interval yet '
-        'and are introduced gradually, controlled by the daily new cards setting.',
-  ),
-  (
-    term: 'Ease factor',
-    definition:
-        'A per-card multiplier that controls how fast the interval grows. '
-        'A high ease factor means the interval grows quickly (you find the card '
-        'easy). A low ease factor means it grows slowly (you find it hard).',
+        'In Weighted Repetition mode you can set a maximum number of cards per '
+        'session. When the limit is reached a banner appears and rating buttons '
+        'are disabled. Leave it empty for an unlimited session.',
   ),
   (
     term: 'Again',
     definition:
-        'You did not remember the card. The interval is reset or reduced so '
-        'the card comes back soon.',
+        'You did not remember the card. '
+        'In Weighted Repetition this card will appear very often until you rate it higher.',
   ),
   (
     term: 'Hard',
     definition:
-        'You remembered, but it was difficult. The interval grows only slightly.',
+        'You remembered, but it was difficult. '
+        'The card will appear frequently in Weighted Repetition.',
   ),
   (
     term: 'Good',
     definition:
-        'You remembered with normal effort. The interval grows by the ease factor.',
+        'You remembered with normal effort. '
+        'The card will appear at a moderate rate in Weighted Repetition.',
   ),
   (
     term: 'Easy',
     definition:
-        'You remembered instantly. The interval grows faster and the ease '
-        'factor increases.',
-  ),
-  (
-    term: 'Review',
-    definition:
-        'One instance of seeing a card and rating it '
-        '(Again / Hard / Good / Easy).',
-  ),
-  (
-    term: 'Session',
-    definition:
-        'One study sitting — all due cards are shown, plus a limited number '
-        'of new cards.',
-  ),
-  (
-    term: 'Crammer mode',
-    definition:
-        'A special session that shows all cards regardless of whether they are '
-        'due. Useful for studying before a test.',
-  ),
+        'You remembered instantly. '
+        'The card will appear rarely in Weighted Repetition.',
+  )
 ];

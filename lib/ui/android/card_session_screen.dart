@@ -52,6 +52,12 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
   int _sessionGood = 0;
   int _sessionEasy = 0;
   bool _showSessionStats = true;
+  SessionMode _sessionMode = defaultSessionMode;
+  int? _sessionCardLimit = defaultSessionCardLimit;
+  int _sessionReviewCount = 0;
+
+  bool get _limitReached =>
+      _sessionCardLimit != null && _sessionReviewCount >= _sessionCardLimit!;
 
   List<CardEntry> get _activeEntries => widget.session.activeEntries;
   CardEntry get _currentEntry => _activeEntries[_currentIndex];
@@ -78,10 +84,100 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         case CardRating.easy:
           _sessionEasy++;
       }
-      _currentIndex = _activeEntries.isEmpty
-          ? 0
-          : (_currentIndex + 1) % _activeEntries.length;
+      _sessionReviewCount++;
+      if (_sessionMode == SessionMode.weightedRepetition) {
+        _currentIndex = _activeEntries.isEmpty
+            ? 0
+            : StatsService.pickWeightedIndex(
+                _activeEntries,
+                widget.session.statsCache,
+                exclude: _currentIndex,
+              );
+      } else {
+        _currentIndex = _activeEntries.isEmpty
+            ? 0
+            : (_currentIndex + 1) % _activeEntries.length;
+      }
       _isFlipped = false;
+    });
+  }
+
+  Future<void> _showSrsSettings() async {
+    var tempMode = _sessionMode;
+    var tempLimit = _sessionCardLimit;
+    final limitController = TextEditingController(
+      text: tempLimit?.toString() ?? '',
+    );
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Study mode settings'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Study mode',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              RadioGroup<SessionMode>(
+                groupValue: tempMode,
+                onChanged: (v) => setDialogState(() => tempMode = v!),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    RadioListTile<SessionMode>(
+                      title: Text('Review (sequential)'),
+                      subtitle: Text('All cards in order'),
+                      value: SessionMode.review,
+                    ),
+                    RadioListTile<SessionMode>(
+                      title: Text('Weighted repetition'),
+                      subtitle: Text('Random — harder cards appear more often'),
+                      value: SessionMode.weightedRepetition,
+                    ),
+                  ],
+                ),
+              ),
+              if (tempMode == SessionMode.weightedRepetition) ...[
+                const SizedBox(height: 12),
+                const Text(
+                  'Max cards per session',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const Text('Leave empty for unlimited'),
+                TextField(
+                  controller: limitController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(hintText: 'e.g. 20'),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final parsed = int.tryParse(limitController.text.trim());
+                tempLimit = (parsed != null && parsed > 0) ? parsed : null;
+                Navigator.pop(ctx);
+              },
+              child: const Text('Apply'),
+            ),
+          ],
+        ),
+      ),
+    );
+    limitController.dispose();
+    if (!mounted) return;
+    setState(() {
+      _sessionMode = tempMode;
+      _sessionCardLimit = tempLimit;
+      _sessionReviewCount = 0;
     });
   }
 
@@ -119,9 +215,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
       case _DeckMenuAction.showAbout:
         showAboutAppDialog(context);
       case _DeckMenuAction.srsSettings:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('SRS settings not yet implemented')),
-        );
+        _showSrsSettings();
     }
   }
 
@@ -711,6 +805,21 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     _isFlipped = false;
                   }),
                 ),
+                IconButton(
+                  icon: Icon(
+                    _showSessionStats
+                        ? Icons.bar_chart
+                        : Icons.bar_chart_outlined,
+                    color: _showSessionStats
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                  ),
+                  tooltip: _showSessionStats
+                      ? 'Hide session stats'
+                      : 'Show session stats',
+                  onPressed: () =>
+                      setState(() => _showSessionStats = !_showSessionStats),
+                ),
                 if (hasOptions)
                   IconButton(
                     icon: Icon(
@@ -762,21 +871,6 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     ),
                   ],
                 ),
-                IconButton(
-                  icon: Icon(
-                    _showSessionStats
-                        ? Icons.bar_chart
-                        : Icons.bar_chart_outlined,
-                    color: _showSessionStats
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                  ),
-                  tooltip: _showSessionStats
-                      ? 'Hide session stats'
-                      : 'Show session stats',
-                  onPressed: () =>
-                      setState(() => _showSessionStats = !_showSessionStats),
-                ),
               ],
             ),
           ),
@@ -823,16 +917,45 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (_sessionMode == SessionMode.weightedRepetition &&
+                        _sessionCardLimit != null)
+                      Text(
+                        '$_sessionReviewCount / $_sessionCardLimit',
+                        style: TextStyle(
+                          color: _limitReached
+                              ? Colors.red
+                              : Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                   ],
                 ),
               ),
+            ),
+          if (_limitReached)
+            MaterialBanner(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              content: Text(
+                'Session limit reached ($_sessionCardLimit cards). '
+                'Tap "Continue" to keep going or change the limit in SRS settings.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => setState(() => _sessionReviewCount = 0),
+                  child: const Text('Continue'),
+                ),
+                TextButton(
+                  onPressed: _showSrsSettings,
+                  child: const Text('Settings'),
+                ),
+              ],
             ),
           Expanded(
             child: CardWidget(
               card: card,
               isFlipped: _isFlipped,
               isReversed: _isReversed,
-              onTap: _isFlipped ? null : _flip,
+              onTap: (_isFlipped || _limitReached) ? null : _flip,
               deckFolderPath: widget.session.folderPath,
               showOptions: _showOptions,
               showImage: _showImage,
@@ -840,7 +963,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
             ),
           ),
           Visibility(
-            visible: _isFlipped,
+            visible: _isFlipped && !_limitReached,
             maintainSize: true,
             maintainAnimation: true,
             maintainState: true,

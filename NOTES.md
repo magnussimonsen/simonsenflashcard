@@ -11,6 +11,7 @@ emulator -avd Medium_Phone_API_36.1 -no-snapshot
 emulator -avd Medium_Phone_API_36.1
 emulator -avd Pixel_7
 
+adb kill-server; adb start-server
 flutter run -d emulator-5554
 
 # Add Android SDK to PATH
