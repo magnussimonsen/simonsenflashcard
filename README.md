@@ -6,10 +6,10 @@ See [PLANMODE.md](PLANMODE.md) for full design decisions, UI spec, and file form
 
 ## Screenshots
 
-<img src="screenshots/flash-1.png" width="350"> 
-<img src="screenshots/flash-2.png" width="350"> 
-<img src="screenshots/flash-3.png" width="350"> 
-<img src="screenshots/flash-4.png" width="350">
+<img src="screenshots/flash-1.png" width="500"> 
+<img src="screenshots/flash-2.png" width="500"> 
+<img src="screenshots/flash-3.png" width="500"> 
+<img src="screenshots/flash-4.png" width="500">
 
 ## Tech stack
 
