@@ -111,7 +111,7 @@ decks/
 
 `image` and `audio` fields store a relative path within `assets/images/` or `assets/audio/` respectively (e.g. `back/chien.mp3`). Omit these fields entirely when unused.
 
-**deck.yaml format:**
+**deck.yaml format — language card with IPA and multiple choice:**
 
 ```yaml
 deckname: 'My Deck'
@@ -134,6 +134,21 @@ cards:
         - 'dog'
         - 'cat'
         - 'horse'
+```
+
+**deck.yaml format — math card with LaTeX:**
+
+```yaml
+deckname: 'Algebra Basics'
+mode: 'Normal'
+cards:
+  - title: 'Quadratic formula'
+    front:
+      question: 'What is the quadratic formula for solving ax² + bx + c = 0?'
+      latex: 'ax^2 + bx + c = 0'
+    back:
+      answer: 'x equals negative b plus or minus the square root of b squared minus 4ac, all over 2a.'
+      latex: 'x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}'
 ```
 
 | Field           | Description                                                  |
