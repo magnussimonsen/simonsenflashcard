@@ -14,6 +14,7 @@ import '../shared/help_screen.dart';
 import '../shared/ai_prompt_screen.dart';
 import '../shared/about_dialog.dart';
 import 'deck_editor_screen.dart';
+import 'home_screen.dart';
 
 enum _FileMenuAction {
   openDeck,
@@ -27,7 +28,7 @@ enum _FileMenuAction {
   quit,
 }
 
-enum _EditMenuAction { editCard, editDeck, deleteDeck }
+enum _EditMenuAction { editCard, editDeck, deleteDeck, restoreExampleDecks }
 
 // SessionMode is defined in constants.dart
 
@@ -269,6 +270,8 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         _openEditDeck();
       case _EditMenuAction.deleteDeck:
         _showDeleteDeckConfirm();
+      case _EditMenuAction.restoreExampleDecks:
+        _restoreExampleDecks();
     }
   }
 
@@ -277,11 +280,9 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     final paths = await DeckService().listDecks(root);
     if (!mounted) return;
     if (paths.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No decks found. Import one or create a new deck.'),
-        ),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
       return;
     }
     final path = await _withKeyboardPaused(
@@ -502,18 +503,15 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     final isExample = await DeckService.isExampleDeck(
       widget.session.folderPath,
     );
-    if (isExample && mounted) {
-      await _withKeyboardPaused(() => _showExampleDeckEditPrompt());
-      return;
-    }
+    final content = isExample
+        ? 'This will delete your copy of this example deck and all local changes.\n\nYou can restore it at any time via Edit → Restore example decks.'
+        : 'This will permanently delete the deck and all its cards.';
     final confirmed = await _withKeyboardPaused(
       () => showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Delete deck?'),
-          content: const Text(
-            'This will permanently delete the deck and all its cards.',
-          ),
+          content: Text(content),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -541,6 +539,45 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     }
   }
 
+  Future<void> _restoreExampleDecks() async {
+    final confirmed = await _withKeyboardPaused(
+      () => showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Restore example decks?'),
+          content: const Text(
+            'This will restore all built-in example decks to their original state, overwriting any edits you have made to them.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Restore'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await DeckService().restoreDefaultDecks();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Example decks restored.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Restore failed: $e')));
+      }
+    }
+  }
+
   void _openDeckEditor({int? initialEntryIndex}) {
     Navigator.push(
       context,
@@ -555,118 +592,10 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     });
   }
 
-  /// Opens the deck editor — or, if this is an example deck, shows the
-  /// clone prompt instead.
+  /// Opens the deck editor for the current deck.
   Future<void> _openEditDeck({int? initialEntryIndex}) async {
-    final isExample = await DeckService.isExampleDeck(
-      widget.session.folderPath,
-    );
-    if (!isExample) {
-      if (!mounted) return;
-      _openDeckEditor(initialEntryIndex: initialEntryIndex);
-      return;
-    }
     if (!mounted) return;
-    await _withKeyboardPaused(() => _showExampleDeckEditPrompt());
-  }
-
-  /// Shows "Example decks cannot be edited or deleted — clone it?" dialog.
-  Future<void> _showExampleDeckEditPrompt() async {
-    final clone = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Example deck'),
-        content: const Text(
-          'Example decks cannot be edited or deleted directly.\n\n'
-          'Would you like to clone this deck to your own collection so you can edit it freely?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Clone deck'),
-          ),
-        ],
-      ),
-    );
-    if (clone == true && mounted) {
-      await _cloneCurrentDeck();
-    }
-  }
-
-  /// Clones the current example deck under a new name, removes the sentinel
-  /// from the clone, then opens the editor on the copy.
-  Future<void> _cloneCurrentDeck() async {
-    final controller = TextEditingController(
-      text: '${widget.session.deckName} (copy)',
-    );
-    final newName = await _withKeyboardPaused(
-      () => showDialog<String>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Name for cloned deck'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(labelText: 'Deck name'),
-            onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, null),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-              child: const Text('Clone'),
-            ),
-          ],
-        ),
-      ),
-    );
-    controller.dispose();
-    if (newName == null || newName.isEmpty || !mounted) return;
-    try {
-      final tempSession = DeckSession(
-        folderPath: widget.session.folderPath,
-        deckName: widget.session.deckName,
-        mode: widget.session.mode,
-        entries: List.of(widget.session.entries),
-        statsCache: {},
-      );
-      await DeckService().saveDeckAs(tempSession, newName);
-      // Remove sentinel so the clone is fully editable.
-      final sentinel = File(
-        '${tempSession.folderPath}/${DeckService.exampleSentinelName}',
-      );
-      if (await sentinel.exists()) await sentinel.delete();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cloned as "$newName". You can now edit it.')),
-      );
-      // Open the editor on the cloned deck (tempSession), not the original.
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => DeckEditorScreen(session: tempSession),
-        ),
-      ).then((_) {
-        if (mounted) setState(() {});
-      });
-    } on ArgumentError catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message as String)));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Could not clone deck: $e')));
-    }
+    _openDeckEditor(initialEntryIndex: initialEntryIndex);
   }
 
   @override
@@ -768,6 +697,11 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     const PopupMenuItem(
                       value: _EditMenuAction.editDeck,
                       child: Text('Edit current deck'),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: _EditMenuAction.restoreExampleDecks,
+                      child: Text('Restore example decks'),
                     ),
                     const PopupMenuDivider(),
                     PopupMenuItem(

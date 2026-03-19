@@ -265,18 +265,14 @@ class DeckService {
 
   /// On first launch, copy the bundled example deck(s) from Flutter assets
   /// into the Simonsen Flashcard decks folder so the app has something to open.
-  /// Safe to call on every launch — skips decks that already exist on disk.
+  /// Safe to call on every launch — only copies decks whose folder does not yet
+  /// exist, so user-deleted or user-edited example decks are not restored
+  /// automatically.  Use [restoreDefaultDecks] to explicitly restore them.
   Future<void> ensureDefaultDecks() async {
     final root = await getDecksRootPath();
     for (final deckName in await _shippedDeckNames()) {
       final destDir = Directory('$root/$deckName');
-      if (await destDir.exists()) {
-        // Folder already exists — re-copy all shipped assets so that any new
-        // files (images, audio, deck fixes) added to the bundle are backfilled
-        // into the on-disk copy on every launch.
-        await _copyShippedDeckAssets(deckName, destDir.path);
-        continue;
-      }
+      if (await destDir.exists()) continue;
       await destDir.create(recursive: true);
       await _copyShippedDeckAssets(deckName, destDir.path);
     }

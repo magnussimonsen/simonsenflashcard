@@ -102,6 +102,44 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _restoreExampleDecks() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Restore example decks?'),
+        content: const Text(
+          'This will restore all built-in example decks to their original state, overwriting any edits you have made to them.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Restore'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await DeckService().restoreDefaultDecks();
+      await _refreshDecks();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Example decks restored.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Restore failed: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -153,6 +191,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
                 _refreshDecks();
               },
+            ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              icon: const Icon(Icons.restore),
+              label: const Text('Restore example decks'),
+              onPressed: _restoreExampleDecks,
             ),
           ],
         ),

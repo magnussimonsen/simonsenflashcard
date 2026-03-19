@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_selector/file_selector.dart';
 import '../../backend/deck_service.dart';
@@ -26,7 +25,7 @@ enum _FileMenuAction {
   showAbout,
 }
 
-enum _EditMenuAction { editCard, editDeck, deleteDeck }
+enum _EditMenuAction { editCard, editDeck, deleteDeck, restoreExampleDecks }
 
 /// Android: screen for reviewing cards in a deck session.
 class CardSessionScreen extends StatefulWidget {
@@ -225,29 +224,22 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         _openEditDeck();
       case _EditMenuAction.deleteDeck:
         _showDeleteDeckConfirm();
+      case _EditMenuAction.restoreExampleDecks:
+        _restoreExampleDecks();
     }
   }
 
-  /// Opens the deck editor — or, if the current deck is an example deck,
-  /// shows a prompt offering to clone it first.
+  /// Opens the deck editor for the current deck.
   Future<void> _openEditDeck() async {
-    final isExample = await DeckService.isExampleDeck(
-      widget.session.folderPath,
-    );
-    if (!isExample) {
-      if (!mounted) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              DeckEditorScreen(deckFolderPath: widget.session.folderPath),
-        ),
-      );
-      await _reloadSessionEntries();
-      return;
-    }
     if (!mounted) return;
-    await _showExampleDeckEditPrompt();
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            DeckEditorScreen(deckFolderPath: widget.session.folderPath),
+      ),
+    );
+    await _reloadSessionEntries();
   }
 
   /// Reloads entries and stats from disk into the live session after the
@@ -277,119 +269,19 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     }
   }
 
-  /// Shows "Example decks cannot be edited — clone it?" dialog.
-  Future<void> _showExampleDeckEditPrompt() async {
-    final clone = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Example deck'),
-        content: const Text(
-          'Example decks cannot be edited or deleted directly.\n\n'
-          'Would you like to clone this deck to your own collection so you can edit it freely?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Clone deck'),
-          ),
-        ],
-      ),
-    );
-    if (clone == true && mounted) {
-      await _cloneCurrentDeck();
-    }
-  }
-
-  /// Clones the current example deck under a new name chosen by the user,
-  /// then navigates to the editor for the cloned copy.
-  Future<void> _cloneCurrentDeck() async {
-    final controller = TextEditingController(
-      text: '${widget.session.deckName} (copy)',
-    );
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Name for cloned deck'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'Deck name'),
-          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, null),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('Clone'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (newName == null || newName.isEmpty || !mounted) return;
-    try {
-      // saveDeckAs copies the folder, updates session identity, and saves.
-      // We work on a temporary session copy so the live session is unaffected.
-      final tempSession = DeckSession(
-        folderPath: widget.session.folderPath,
-        deckName: widget.session.deckName,
-        mode: widget.session.mode,
-        entries: List.of(widget.session.entries),
-        statsCache: {},
-      );
-      await DeckService().saveDeckAs(tempSession, newName);
-      // Remove the example sentinel from the clone so it becomes fully editable.
-      final sentinel = File(
-        '${tempSession.folderPath}/${DeckService.exampleSentinelName}',
-      );
-      if (await sentinel.exists()) await sentinel.delete();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cloned as "$newName". You can now edit it.')),
-      );
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              DeckEditorScreen(deckFolderPath: tempSession.folderPath),
-        ),
-      );
-    } on ArgumentError catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message as String)));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Could not clone deck: $e')));
-    }
-  }
-
   Future<void> _showDeleteDeckConfirm() async {
     final isExample = await DeckService.isExampleDeck(
       widget.session.folderPath,
     );
-    if (isExample && mounted) {
-      await _showExampleDeckEditPrompt();
-      return;
-    }
+    final content = isExample
+        ? 'This will delete your copy of this example deck and all local changes.\n\nYou can restore it at any time via Edit → Restore example decks.'
+        : 'This will permanently delete the deck and all its cards.';
     if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete deck?'),
-        content: const Text(
-          'This will permanently delete the deck and all its cards.',
-        ),
+        content: Text(content),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -416,6 +308,43 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text('Could not delete deck: $e')));
         }
+      }
+    }
+  }
+
+  Future<void> _restoreExampleDecks() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Restore example decks?'),
+        content: const Text(
+          'This will restore all built-in example decks to their original state, overwriting any edits you have made to them.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Restore'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await DeckService().restoreDefaultDecks();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Example decks restored.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Restore failed: $e')));
       }
     }
   }
@@ -639,14 +568,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
               title: const Text('Add new card'),
               onTap: () async {
                 Navigator.pop(ctx);
-                final isExample = await DeckService.isExampleDeck(
-                  widget.session.folderPath,
-                );
                 if (!mounted) return;
-                if (isExample) {
-                  await _showExampleDeckEditPrompt();
-                  return;
-                }
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -663,14 +585,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
               title: const Text('Edit current card'),
               onTap: () async {
                 Navigator.pop(ctx);
-                final isExample = await DeckService.isExampleDeck(
-                  widget.session.folderPath,
-                );
                 if (!mounted) return;
-                if (isExample) {
-                  await _showExampleDeckEditPrompt();
-                  return;
-                }
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -817,6 +732,11 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     const PopupMenuItem(
                       value: _EditMenuAction.editDeck,
                       child: Text('Edit current deck'),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: _EditMenuAction.restoreExampleDecks,
+                      child: Text('Restore example decks'),
                     ),
                     const PopupMenuDivider(),
                     PopupMenuItem(
