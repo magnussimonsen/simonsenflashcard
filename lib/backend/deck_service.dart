@@ -30,6 +30,34 @@ class DeckService {
   /// Its presence means the deck is read-only (example deck).
   static const String exampleSentinelName = '.example';
 
+  /// File stored in the decks root that lists names of example decks the user
+  /// has explicitly deleted.  [ensureDefaultDecks] consults it so those decks
+  /// are not silently recreated on the next launch.
+  static const String _deletedExamplesFileName = '.deleted-examples';
+
+  /// Returns the set of example deck names the user has deliberately deleted.
+  static Future<Set<String>> _deletedExampleNames(String decksRoot) async {
+    final f = File('$decksRoot/$_deletedExamplesFileName');
+    if (!await f.exists()) return {};
+    return (await f.readAsString())
+        .split('\n')
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty)
+        .toSet();
+  }
+
+  /// Appends [deckName] to the deleted-examples list.
+  static Future<void> _recordDeletedExample(
+    String decksRoot,
+    String deckName,
+  ) async {
+    final names = await _deletedExampleNames(decksRoot);
+    names.add(deckName);
+    await File(
+      '$decksRoot/$_deletedExamplesFileName',
+    ).writeAsString(names.join('\n'));
+  }
+
   /// Returns `true` if the deck at [folderPath] is an example deck
   /// (i.e. was shipped with the app and has not been cloned by the user).
   static Future<bool> isExampleDeck(String folderPath) async {
@@ -197,7 +225,13 @@ class DeckService {
   }
 
   /// Permanently delete the deck folder at [folderPath] from disk.
+  /// If the deck is an example deck, records the deletion so that
+  /// [ensureDefaultDecks] does not recreate it on the next launch.
   Future<void> deleteDeck(String folderPath) async {
+    if (await isExampleDeck(folderPath)) {
+      final root = await getDecksRootPath();
+      await _recordDeletedExample(root, deckFolderName(folderPath));
+    }
     final dir = Directory(folderPath);
     if (await dir.exists()) await dir.delete(recursive: true);
   }
@@ -252,9 +286,13 @@ class DeckService {
 
   /// Re-copy all example decks bundled in assets back to the Simonsen Flashcard
   /// decks folder, overwriting any existing copies.  Restores the example sentinel
-  /// so the decks are read-only again.
+  /// so the decks are read-only again.  Also clears the deleted-examples list so
+  /// the restored decks are treated as freshly installed on subsequent launches.
   Future<void> restoreDefaultDecks() async {
     final root = await getDecksRootPath();
+    // Clear the "user-deleted" record.
+    final deletedFile = File('$root/$_deletedExamplesFileName');
+    if (await deletedFile.exists()) await deletedFile.delete();
     for (final deckName in await _shippedDeckNames()) {
       final destDir = Directory('$root/$deckName');
       if (await destDir.exists()) await destDir.delete(recursive: true);
@@ -266,11 +304,14 @@ class DeckService {
   /// On first launch, copy the bundled example deck(s) from Flutter assets
   /// into the Simonsen Flashcard decks folder so the app has something to open.
   /// Safe to call on every launch — only copies decks whose folder does not yet
-  /// exist, so user-deleted or user-edited example decks are not restored
-  /// automatically.  Use [restoreDefaultDecks] to explicitly restore them.
+  /// exist AND whose name is not in the user-deleted list, so deleted or edited
+  /// example decks are not restored automatically.  Use [restoreDefaultDecks]
+  /// to explicitly restore them.
   Future<void> ensureDefaultDecks() async {
     final root = await getDecksRootPath();
+    final deletedNames = await _deletedExampleNames(root);
     for (final deckName in await _shippedDeckNames()) {
+      if (deletedNames.contains(deckName)) continue;
       final destDir = Directory('$root/$deckName');
       if (await destDir.exists()) continue;
       await destDir.create(recursive: true);

@@ -4,7 +4,9 @@ import 'backend/constants.dart';
 import 'backend/deck_service.dart';
 import 'backend/deck_session.dart';
 import 'ui/desktop/card_session_screen.dart' as desktop;
+import 'ui/desktop/home_screen.dart' as desktop_home;
 import 'ui/android/card_session_screen.dart' as android;
+import 'ui/android/home_screen.dart' as android_home;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,8 +38,6 @@ class _StartupScreen extends StatefulWidget {
 }
 
 class _StartupScreenState extends State<_StartupScreen> {
-  bool _noDeckFound = false;
-
   @override
   void initState() {
     super.initState();
@@ -51,25 +51,37 @@ class _StartupScreenState extends State<_StartupScreen> {
     final root = await DeckService.getDecksRootPath();
     final decks = await service.listDecks(root);
 
-    DeckSession? session;
-    // Prefer the default example deck on first launch.
-    final basicFrench = decks.firstWhere(
-      (p) => p.replaceAll('\\', '/').endsWith('/$defaultDeckName'),
-      orElse: () => decks.isNotEmpty ? decks.first : '',
-    );
-    if (basicFrench.isNotEmpty) {
-      session = await service.loadSession(basicFrench);
-    }
-
     if (!mounted) return;
-    if (session == null) {
-      setState(() => _noDeckFound = true);
+
+    if (decks.isEmpty) {
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => _homeScreen()));
       return;
     }
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => _sessionScreen(session!)),
+    // Prefer the default example deck on first launch.
+    final preferred = decks.firstWhere(
+      (p) => p.replaceAll('\\', '/').endsWith('/$defaultDeckName'),
+      orElse: () => decks.first,
     );
+    try {
+      final session = await service.loadSession(preferred);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => _sessionScreen(session)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => _homeScreen()));
+    }
+  }
+
+  Widget _homeScreen() {
+    if (Platform.isAndroid) return const android_home.HomeScreen();
+    return const desktop_home.HomeScreen();
   }
 
   Widget _sessionScreen(DeckSession session) {
@@ -81,26 +93,6 @@ class _StartupScreenState extends State<_StartupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_noDeckFound) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('No decks found.'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() => _noDeckFound = false);
-                  _boot();
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
     return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

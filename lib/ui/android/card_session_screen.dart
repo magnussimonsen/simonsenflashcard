@@ -354,11 +354,9 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     final paths = await DeckService().listDecks(root);
     if (!mounted) return;
     if (paths.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No decks found. Import one or create a new deck.'),
-        ),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
       return;
     }
     final path = await showDialog<String>(
