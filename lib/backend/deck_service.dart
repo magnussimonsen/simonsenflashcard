@@ -14,13 +14,77 @@ import '../utils/path_utils.dart';
 /// File-path helpers live in [path_utils.dart].
 class DeckService {
   /// Returns the root folder where Simonsen Flashcard stores all decks.
-  /// On Windows/macOS/Linux this is `Documents/Simonsen Flashcard/decks/`.
-  /// On Android this is the app's documents directory.
+  ///
+  /// Desktop (Windows/macOS/Linux): uses the app support directory (AppData on
+  /// Windows) to avoid OS security restrictions that can block writes in
+  /// user-facing folders like Documents.
+  ///
+  /// Mobile (Android/iOS): uses the app's documents directory.
   static Future<String> getDecksRootPath() async {
-    final base = await getApplicationDocumentsDirectory();
-    final dir = Directory('${base.path}/Simonsen Flashcard/decks');
+    final base = await _preferredBaseDirectory();
+    final dir = Directory('${base.path}/$_appStorageFolderName/$_decksFolderName');
     if (!await dir.exists()) await dir.create(recursive: true);
+
+    // One-time migration for older installs that stored decks under Documents.
+    // This is especially important on locked-down Windows machines where
+    // deletes/writes to Documents can be denied.
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      await _migrateFromLegacyDocumentsIfNeeded(dir);
+    }
+
     return dir.path;
+  }
+
+  static const String _appStorageFolderName = 'Simonsen Flashcard';
+  static const String _decksFolderName = 'decks';
+  static const String _migrationSentinelName = '.migrated-documents-to-support';
+
+  static Future<Directory> _preferredBaseDirectory() async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      return getApplicationDocumentsDirectory();
+    }
+    return getApplicationSupportDirectory();
+  }
+
+  static Future<void> _migrateFromLegacyDocumentsIfNeeded(
+    Directory preferredDecksDir,
+  ) async {
+    final sentinel = File('${preferredDecksDir.path}/$_migrationSentinelName');
+    if (await sentinel.exists()) return;
+
+    try {
+      final docsBase = await getApplicationDocumentsDirectory();
+      final legacyDecksDir = Directory(
+        '${docsBase.path}/$_appStorageFolderName/$_decksFolderName',
+      );
+      if (!await legacyDecksDir.exists()) {
+        await sentinel.writeAsString(DateTime.now().toIso8601String());
+        return;
+      }
+
+      final service = DeckService();
+      await for (final entity in legacyDecksDir.list(followLinks: false)) {
+        final name = entity.path.split(RegExp(r'[\\/]')).last;
+        final destPath = '${preferredDecksDir.path}/$name';
+        if (entity is Directory) {
+          final destDir = Directory(destPath);
+          if (await destDir.exists()) continue;
+          await service._copyDirectory(entity, destDir);
+        } else if (entity is File) {
+          final destFile = File(destPath);
+          if (await destFile.exists()) continue;
+          await destFile.parent.create(recursive: true);
+          await entity.copy(destFile.path);
+        }
+      }
+    } catch (_) {
+      // Best-effort migration: ignore failures (e.g. locked-down Documents).
+    } finally {
+      // Ensure we don't retry every launch.
+      if (!await sentinel.exists()) {
+        await sentinel.writeAsString(DateTime.now().toIso8601String());
+      }
+    }
   }
 
   /// The canonical filename used inside every deck folder.

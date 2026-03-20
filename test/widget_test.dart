@@ -12,6 +12,8 @@ import 'package:flashcard_app/main.dart';
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const SimonsenFlashcardApp());
-    expect(find.text('Simonsen Flashcard'), findsOneWidget);
+    // The app shows a startup progress indicator while it performs first-run
+    // setup (copying example decks, etc.).
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 }
