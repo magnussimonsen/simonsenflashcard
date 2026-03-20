@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../backend/constants.dart';
 
 /// Shows the About dialog for Simonsen Flashcard.
 void showAboutAppDialog(BuildContext context) {
+  final repoUri = Uri.parse(
+    'https://github.com/magnussimonsen/simonsenflashcard',
+  );
   showAboutDialog(
     context: context,
     applicationName: 'Simonsen Flashcard',
@@ -15,6 +19,13 @@ void showAboutAppDialog(BuildContext context) {
     ),
     children: [
       const Text(appTitle),
+      const SizedBox(height: 8),
+      TextButton(
+        onPressed: () async {
+          await launchUrl(repoUri, mode: LaunchMode.externalApplication);
+        },
+        child: const Text('GitHub repository'),
+      ),
       const SizedBox(height: 16),
       const Text('Authors', style: TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 4),
