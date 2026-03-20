@@ -22,7 +22,9 @@ class DeckService {
   /// Mobile (Android/iOS): uses the app's documents directory.
   static Future<String> getDecksRootPath() async {
     final base = await _preferredBaseDirectory();
-    final dir = Directory('${base.path}/$_appStorageFolderName/$_decksFolderName');
+    final dir = Directory(
+      '${base.path}/$_appStorageFolderName/$_decksFolderName',
+    );
     if (!await dir.exists()) await dir.create(recursive: true);
 
     // One-time migration for older installs that stored decks under Documents.
