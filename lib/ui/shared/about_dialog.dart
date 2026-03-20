@@ -7,7 +7,12 @@ void showAboutAppDialog(BuildContext context) {
     context: context,
     applicationName: 'Simonsen Flashcard',
     applicationVersion: '1.0.0',
-    applicationIcon: const Icon(Icons.style, size: 48),
+    applicationIcon: Image.asset(
+      'lib/logo/logo.png',
+      width: 48,
+      height: 48,
+      filterQuality: FilterQuality.high,
+    ),
     children: [
       const Text(appTitle),
       const SizedBox(height: 16),

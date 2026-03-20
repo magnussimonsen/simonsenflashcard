@@ -79,6 +79,9 @@ flutter:
   uses-material-design: true
 
   assets:
+    # ── App logo (used in UI/About dialog, etc.) ────────────────────────────
+    - lib/logo/logo.png
+
     # ── Shipped example decks ────────────────────────────────────────────────
     # To ship a new deck: add its folder under assets/decks/ then list its
     # files below.  The app discovers all bundled decks at runtime via
