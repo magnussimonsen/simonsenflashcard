@@ -1,0 +1,1 @@
+Add quit option in hamburder menu for android
