@@ -1,0 +1,821 @@
+deckname: "Trigonometry Exact Values"
+mode: "Normal"
+cards:
+  # --- sin ---
+  - id: "deadbeef-cafe-4000-8000-000000000001"
+    title: "sin(0°)"
+    front:
+      question: "sin(0°) = sin(0) = ?"
+      options:
+        - "0"
+        - "1/2"
+        - "1"
+        - "√3/2"
+    back:
+      answer: "0"
+      options:
+        - "0"
+        - "1/2"
+        - "1"
+        - "√3/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000002"
+    title: "sin(30°)"
+    front:
+      question: "sin(30°) = sin(π/6) = ?"
+      options:
+        - "1/2"
+        - "√2/2"
+        - "√3/2"
+        - "0"
+    back:
+      answer: "1/2"
+      options:
+        - "1/2"
+        - "√2/2"
+        - "√3/2"
+        - "0"
+
+  - id: "deadbeef-cafe-4000-8000-000000000003"
+    title: "sin(45°)"
+    front:
+      question: "sin(45°) = sin(π/4) = ?"
+      options:
+        - "√2/2"
+        - "1/2"
+        - "√3/2"
+        - "1"
+    back:
+      answer: "√2/2"
+      options:
+        - "√2/2"
+        - "1/2"
+        - "√3/2"
+        - "1"
+
+  - id: "deadbeef-cafe-4000-8000-000000000004"
+    title: "sin(60°)"
+    front:
+      question: "sin(60°) = sin(π/3) = ?"
+      options:
+        - "√3/2"
+        - "√2/2"
+        - "1/2"
+        - "1"
+    back:
+      answer: "√3/2"
+      options:
+        - "√3/2"
+        - "√2/2"
+        - "1/2"
+        - "1"
+
+  - id: "deadbeef-cafe-4000-8000-000000000005"
+    title: "sin(90°)"
+    front:
+      question: "sin(90°) = sin(π/2) = ?"
+      options:
+        - "1"
+        - "√3/2"
+        - "√2/2"
+        - "0"
+    back:
+      answer: "1"
+      options:
+        - "1"
+        - "√3/2"
+        - "√2/2"
+        - "0"
+
+  - id: "deadbeef-cafe-4000-8000-000000000006"
+    title: "sin(120°)"
+    front:
+      question: "sin(120°) = sin(2π/3) = ?"
+      options:
+        - "√3/2"
+        - "1/2"
+        - "-1/2"
+        - "√2/2"
+    back:
+      answer: "√3/2"
+      options:
+        - "√3/2"
+        - "1/2"
+        - "-1/2"
+        - "√2/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000007"
+    title: "sin(135°)"
+    front:
+      question: "sin(135°) = sin(3π/4) = ?"
+      options:
+        - "√2/2"
+        - "-√2/2"
+        - "√3/2"
+        - "1/2"
+    back:
+      answer: "√2/2"
+      options:
+        - "√2/2"
+        - "-√2/2"
+        - "√3/2"
+        - "1/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000008"
+    title: "sin(150°)"
+    front:
+      question: "sin(150°) = sin(5π/6) = ?"
+      options:
+        - "1/2"
+        - "-1/2"
+        - "√3/2"
+        - "√2/2"
+    back:
+      answer: "1/2"
+      options:
+        - "1/2"
+        - "-1/2"
+        - "√3/2"
+        - "√2/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000009"
+    title: "sin(180°)"
+    front:
+      question: "sin(180°) = sin(π) = ?"
+      options:
+        - "0"
+        - "1"
+        - "-1"
+        - "1/2"
+    back:
+      answer: "0"
+      options:
+        - "0"
+        - "1"
+        - "-1"
+        - "1/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000010"
+    title: "sin(210°)"
+    front:
+      question: "sin(210°) = sin(7π/6) = ?"
+      options:
+        - "-1/2"
+        - "1/2"
+        - "-√3/2"
+        - "-√2/2"
+    back:
+      answer: "-1/2"
+      options:
+        - "-1/2"
+        - "1/2"
+        - "-√3/2"
+        - "-√2/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000011"
+    title: "sin(225°)"
+    front:
+      question: "sin(225°) = sin(5π/4) = ?"
+      options:
+        - "-√2/2"
+        - "√2/2"
+        - "-1/2"
+        - "-√3/2"
+    back:
+      answer: "-√2/2"
+      options:
+        - "-√2/2"
+        - "√2/2"
+        - "-1/2"
+        - "-√3/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000012"
+    title: "sin(240°)"
+    front:
+      question: "sin(240°) = sin(4π/3) = ?"
+      options:
+        - "-√3/2"
+        - "-√2/2"
+        - "-1/2"
+        - "-1"
+    back:
+      answer: "-√3/2"
+      options:
+        - "-√3/2"
+        - "-√2/2"
+        - "-1/2"
+        - "-1"
+
+  - id: "deadbeef-cafe-4000-8000-000000000013"
+    title: "sin(270°)"
+    front:
+      question: "sin(270°) = sin(3π/2) = ?"
+      options:
+        - "-1"
+        - "0"
+        - "-√3/2"
+        - "-√2/2"
+    back:
+      answer: "-1"
+      options:
+        - "-1"
+        - "0"
+        - "-√3/2"
+        - "-√2/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000014"
+    title: "sin(300°)"
+    front:
+      question: "sin(300°) = sin(5π/3) = ?"
+      options:
+        - "-√3/2"
+        - "-1/2"
+        - "-√2/2"
+        - "√3/2"
+    back:
+      answer: "-√3/2"
+      options:
+        - "-√3/2"
+        - "-1/2"
+        - "-√2/2"
+        - "√3/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000015"
+    title: "sin(315°)"
+    front:
+      question: "sin(315°) = sin(7π/4) = ?"
+      options:
+        - "-√2/2"
+        - "-1/2"
+        - "-√3/2"
+        - "√2/2"
+    back:
+      answer: "-√2/2"
+      options:
+        - "-√2/2"
+        - "-1/2"
+        - "-√3/2"
+        - "√2/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000016"
+    title: "sin(330°)"
+    front:
+      question: "sin(330°) = sin(11π/6) = ?"
+      options:
+        - "-1/2"
+        - "-√3/2"
+        - "1/2"
+        - "-√2/2"
+    back:
+      answer: "-1/2"
+      options:
+        - "-1/2"
+        - "-√3/2"
+        - "1/2"
+        - "-√2/2"
+
+  # --- cos ---
+  - id: "deadbeef-cafe-4000-8000-000000000017"
+    title: "cos(0°)"
+    front:
+      question: "cos(0°) = cos(0) = ?"
+      options:
+        - "1"
+        - "0"
+        - "1/2"
+        - "√3/2"
+    back:
+      answer: "1"
+      options:
+        - "1"
+        - "0"
+        - "1/2"
+        - "√3/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000018"
+    title: "cos(30°)"
+    front:
+      question: "cos(30°) = cos(π/6) = ?"
+      options:
+        - "√3/2"
+        - "1/2"
+        - "√2/2"
+        - "1"
+    back:
+      answer: "√3/2"
+      options:
+        - "√3/2"
+        - "1/2"
+        - "√2/2"
+        - "1"
+
+  - id: "deadbeef-cafe-4000-8000-000000000019"
+    title: "cos(45°)"
+    front:
+      question: "cos(45°) = cos(π/4) = ?"
+      options:
+        - "√2/2"
+        - "1/2"
+        - "√3/2"
+        - "1"
+    back:
+      answer: "√2/2"
+      options:
+        - "√2/2"
+        - "1/2"
+        - "√3/2"
+        - "1"
+
+  - id: "deadbeef-cafe-4000-8000-000000000020"
+    title: "cos(60°)"
+    front:
+      question: "cos(60°) = cos(π/3) = ?"
+      options:
+        - "1/2"
+        - "√3/2"
+        - "√2/2"
+        - "0"
+    back:
+      answer: "1/2"
+      options:
+        - "1/2"
+        - "√3/2"
+        - "√2/2"
+        - "0"
+
+  - id: "deadbeef-cafe-4000-8000-000000000021"
+    title: "cos(90°)"
+    front:
+      question: "cos(90°) = cos(π/2) = ?"
+      options:
+        - "0"
+        - "1"
+        - "1/2"
+        - "√2/2"
+    back:
+      answer: "0"
+      options:
+        - "0"
+        - "1"
+        - "1/2"
+        - "√2/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000022"
+    title: "cos(120°)"
+    front:
+      question: "cos(120°) = cos(2π/3) = ?"
+      options:
+        - "-1/2"
+        - "1/2"
+        - "-√3/2"
+        - "-√2/2"
+    back:
+      answer: "-1/2"
+      options:
+        - "-1/2"
+        - "1/2"
+        - "-√3/2"
+        - "-√2/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000023"
+    title: "cos(135°)"
+    front:
+      question: "cos(135°) = cos(3π/4) = ?"
+      options:
+        - "-√2/2"
+        - "√2/2"
+        - "-1/2"
+        - "-√3/2"
+    back:
+      answer: "-√2/2"
+      options:
+        - "-√2/2"
+        - "√2/2"
+        - "-1/2"
+        - "-√3/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000024"
+    title: "cos(150°)"
+    front:
+      question: "cos(150°) = cos(5π/6) = ?"
+      options:
+        - "-√3/2"
+        - "-√2/2"
+        - "-1/2"
+        - "-1"
+    back:
+      answer: "-√3/2"
+      options:
+        - "-√3/2"
+        - "-√2/2"
+        - "-1/2"
+        - "-1"
+
+  - id: "deadbeef-cafe-4000-8000-000000000025"
+    title: "cos(180°)"
+    front:
+      question: "cos(180°) = cos(π) = ?"
+      options:
+        - "-1"
+        - "0"
+        - "-1/2"
+        - "-√3/2"
+    back:
+      answer: "-1"
+      options:
+        - "-1"
+        - "0"
+        - "-1/2"
+        - "-√3/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000026"
+    title: "cos(210°)"
+    front:
+      question: "cos(210°) = cos(7π/6) = ?"
+      options:
+        - "-√3/2"
+        - "-1/2"
+        - "-√2/2"
+        - "-1"
+    back:
+      answer: "-√3/2"
+      options:
+        - "-√3/2"
+        - "-1/2"
+        - "-√2/2"
+        - "-1"
+
+  - id: "deadbeef-cafe-4000-8000-000000000027"
+    title: "cos(225°)"
+    front:
+      question: "cos(225°) = cos(5π/4) = ?"
+      options:
+        - "-√2/2"
+        - "-√3/2"
+        - "-1/2"
+        - "√2/2"
+    back:
+      answer: "-√2/2"
+      options:
+        - "-√2/2"
+        - "-√3/2"
+        - "-1/2"
+        - "√2/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000028"
+    title: "cos(240°)"
+    front:
+      question: "cos(240°) = cos(4π/3) = ?"
+      options:
+        - "-1/2"
+        - "-√3/2"
+        - "-√2/2"
+        - "1/2"
+    back:
+      answer: "-1/2"
+      options:
+        - "-1/2"
+        - "-√3/2"
+        - "-√2/2"
+        - "1/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000029"
+    title: "cos(270°)"
+    front:
+      question: "cos(270°) = cos(3π/2) = ?"
+      options:
+        - "0"
+        - "-1"
+        - "-1/2"
+        - "-√3/2"
+    back:
+      answer: "0"
+      options:
+        - "0"
+        - "-1"
+        - "-1/2"
+        - "-√3/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000030"
+    title: "cos(300°)"
+    front:
+      question: "cos(300°) = cos(5π/3) = ?"
+      options:
+        - "1/2"
+        - "-1/2"
+        - "√3/2"
+        - "√2/2"
+    back:
+      answer: "1/2"
+      options:
+        - "1/2"
+        - "-1/2"
+        - "√3/2"
+        - "√2/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000031"
+    title: "cos(315°)"
+    front:
+      question: "cos(315°) = cos(7π/4) = ?"
+      options:
+        - "√2/2"
+        - "-√2/2"
+        - "1/2"
+        - "√3/2"
+    back:
+      answer: "√2/2"
+      options:
+        - "√2/2"
+        - "-√2/2"
+        - "1/2"
+        - "√3/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000032"
+    title: "cos(330°)"
+    front:
+      question: "cos(330°) = cos(11π/6) = ?"
+      options:
+        - "√3/2"
+        - "1/2"
+        - "-√3/2"
+        - "√2/2"
+    back:
+      answer: "√3/2"
+      options:
+        - "√3/2"
+        - "1/2"
+        - "-√3/2"
+        - "√2/2"
+
+  # --- tan ---
+  - id: "deadbeef-cafe-4000-8000-000000000033"
+    title: "tan(0°)"
+    front:
+      question: "tan(0°) = tan(0) = ?"
+      options:
+        - "0"
+        - "1"
+        - "-1"
+        - "undefined"
+    back:
+      answer: "0"
+      options:
+        - "0"
+        - "1"
+        - "-1"
+        - "undefined"
+
+  - id: "deadbeef-cafe-4000-8000-000000000034"
+    title: "tan(30°)"
+    front:
+      question: "tan(30°) = tan(π/6) = ?"
+      options:
+        - "√3/3"
+        - "1"
+        - "√3"
+        - "1/2"
+    back:
+      answer: "√3/3"
+      options:
+        - "√3/3"
+        - "1"
+        - "√3"
+        - "1/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000035"
+    title: "tan(45°)"
+    front:
+      question: "tan(45°) = tan(π/4) = ?"
+      options:
+        - "1"
+        - "√3/3"
+        - "√3"
+        - "√2/2"
+    back:
+      answer: "1"
+      options:
+        - "1"
+        - "√3/3"
+        - "√3"
+        - "√2/2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000036"
+    title: "tan(60°)"
+    front:
+      question: "tan(60°) = tan(π/3) = ?"
+      options:
+        - "√3"
+        - "1"
+        - "√3/3"
+        - "2"
+    back:
+      answer: "√3"
+      options:
+        - "√3"
+        - "1"
+        - "√3/3"
+        - "2"
+
+  - id: "deadbeef-cafe-4000-8000-000000000037"
+    title: "tan(90°)"
+    front:
+      question: "tan(90°) = tan(π/2) = ?"
+      options:
+        - "undefined"
+        - "0"
+        - "1"
+        - "-1"
+    back:
+      answer: "undefined"
+      options:
+        - "undefined"
+        - "0"
+        - "1"
+        - "-1"
+
+  - id: "deadbeef-cafe-4000-8000-000000000038"
+    title: "tan(120°)"
+    front:
+      question: "tan(120°) = tan(2π/3) = ?"
+      options:
+        - "-√3"
+        - "√3"
+        - "-1"
+        - "-√3/3"
+    back:
+      answer: "-√3"
+      options:
+        - "-√3"
+        - "√3"
+        - "-1"
+        - "-√3/3"
+
+  - id: "deadbeef-cafe-4000-8000-000000000039"
+    title: "tan(135°)"
+    front:
+      question: "tan(135°) = tan(3π/4) = ?"
+      options:
+        - "-1"
+        - "1"
+        - "-√3"
+        - "-√3/3"
+    back:
+      answer: "-1"
+      options:
+        - "-1"
+        - "1"
+        - "-√3"
+        - "-√3/3"
+
+  - id: "deadbeef-cafe-4000-8000-000000000040"
+    title: "tan(150°)"
+    front:
+      question: "tan(150°) = tan(5π/6) = ?"
+      options:
+        - "-√3/3"
+        - "-1"
+        - "-√3"
+        - "√3/3"
+    back:
+      answer: "-√3/3"
+      options:
+        - "-√3/3"
+        - "-1"
+        - "-√3"
+        - "√3/3"
+
+  - id: "deadbeef-cafe-4000-8000-000000000041"
+    title: "tan(180°)"
+    front:
+      question: "tan(180°) = tan(π) = ?"
+      options:
+        - "0"
+        - "undefined"
+        - "1"
+        - "-1"
+    back:
+      answer: "0"
+      options:
+        - "0"
+        - "undefined"
+        - "1"
+        - "-1"
+
+  - id: "deadbeef-cafe-4000-8000-000000000042"
+    title: "tan(210°)"
+    front:
+      question: "tan(210°) = tan(7π/6) = ?"
+      options:
+        - "√3/3"
+        - "-√3/3"
+        - "1"
+        - "√3"
+    back:
+      answer: "√3/3"
+      options:
+        - "√3/3"
+        - "-√3/3"
+        - "1"
+        - "√3"
+
+  - id: "deadbeef-cafe-4000-8000-000000000043"
+    title: "tan(225°)"
+    front:
+      question: "tan(225°) = tan(5π/4) = ?"
+      options:
+        - "1"
+        - "-1"
+        - "√3/3"
+        - "√3"
+    back:
+      answer: "1"
+      options:
+        - "1"
+        - "-1"
+        - "√3/3"
+        - "√3"
+
+  - id: "deadbeef-cafe-4000-8000-000000000044"
+    title: "tan(240°)"
+    front:
+      question: "tan(240°) = tan(4π/3) = ?"
+      options:
+        - "√3"
+        - "-√3"
+        - "1"
+        - "√3/3"
+    back:
+      answer: "√3"
+      options:
+        - "√3"
+        - "-√3"
+        - "1"
+        - "√3/3"
+
+  - id: "deadbeef-cafe-4000-8000-000000000045"
+    title: "tan(270°)"
+    front:
+      question: "tan(270°) = tan(3π/2) = ?"
+      options:
+        - "undefined"
+        - "0"
+        - "-1"
+        - "1"
+    back:
+      answer: "undefined"
+      options:
+        - "undefined"
+        - "0"
+        - "-1"
+        - "1"
+
+  - id: "deadbeef-cafe-4000-8000-000000000046"
+    title: "tan(300°)"
+    front:
+      question: "tan(300°) = tan(5π/3) = ?"
+      options:
+        - "-√3"
+        - "√3"
+        - "-1"
+        - "-√3/3"
+    back:
+      answer: "-√3"
+      options:
+        - "-√3"
+        - "√3"
+        - "-1"
+        - "-√3/3"
+
+  - id: "deadbeef-cafe-4000-8000-000000000047"
+    title: "tan(315°)"
+    front:
+      question: "tan(315°) = tan(7π/4) = ?"
+      options:
+        - "-1"
+        - "1"
+        - "-√3/3"
+        - "-√3"
+    back:
+      answer: "-1"
+      options:
+        - "-1"
+        - "1"
+        - "-√3/3"
+        - "-√3"
+
+  - id: "deadbeef-cafe-4000-8000-000000000048"
+    title: "tan(330°)"
+    front:
+      question: "tan(330°) = tan(11π/6) = ?"
+      options:
+        - "-√3/3"
+        - "√3/3"
+        - "-1"
+        - "-√3"
+    back:
+      answer: "-√3/3"
+      options:
+        - "-√3/3"
+        - "√3/3"
+        - "-1"
+        - "-√3"
