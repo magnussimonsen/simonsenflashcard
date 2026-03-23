@@ -93,6 +93,12 @@ class DeckService {
   /// The canonical filename used inside every deck folder.
   static const String _deckFileName = 'deck.yaml';
 
+  /// Legacy deck file names from pre-YAML versions of the app.
+  static const List<String> _legacyDeckFileNames = [
+    'deck.flashcarddeck',
+    'deck.txt',
+  ];
+
   /// Sentinel file written into every example deck folder when it is deployed.
   /// Its presence means the deck is read-only (example deck).
   static const String exampleSentinelName = '.example';
@@ -135,7 +141,7 @@ class DeckService {
   /// Tries deck.yaml, then legacy deck.flashcarddeck, then deck.txt.
   /// On next save the deck is migrated to the current YAML format.
   Future<String> _resolveDeckFilePath(String folderPath) async {
-    for (final name in [_deckFileName, 'deck.flashcarddeck', 'deck.txt']) {
+    for (final name in [_deckFileName, ..._legacyDeckFileNames]) {
       final f = File('$folderPath/$name');
       if (await f.exists()) return f.path;
     }
@@ -229,7 +235,7 @@ class DeckService {
       ),
     );
     // Migrate legacy files to the new YAML format on next save.
-    for (final name in ['deck.flashcarddeck', 'deck.txt']) {
+    for (final name in _legacyDeckFileNames) {
       final legacy = File('${session.folderPath}/$name');
       if (await legacy.exists()) await legacy.delete();
     }
@@ -241,11 +247,7 @@ class DeckService {
     if (name.isEmpty) {
       throw ArgumentError('Deck name must not be empty.');
     }
-    if (name.contains('/') ||
-        name.contains('\\') ||
-        name == '..' ||
-        name.startsWith('../') ||
-        name.startsWith('..\\')) {
+    if (name.contains('/') || name.contains('\\') || name == '..') {
       throw ArgumentError('Deck name "$name" contains invalid characters.');
     }
   }
@@ -285,14 +287,20 @@ class DeckService {
       if (entity is Directory) {
         await _copyDirectory(
           entity,
-          Directory('${dst.path}/${entity.path.split(RegExp(r'[\\/]')).last}'),
+          Directory('${dst.path}/${deckFolderName(entity.path)}'),
         );
       } else if (entity is File) {
-        await entity.copy(
-          '${dst.path}/${entity.path.split(RegExp(r'[\\/]')).last}',
-        );
+        await entity.copy('${dst.path}/${deckFolderName(entity.path)}');
       }
     }
+  }
+
+  /// Returns true if [folderPath] contains any recognized deck file.
+  static Future<bool> _hasDeckFile(String folderPath) async {
+    for (final name in [_deckFileName, ..._legacyDeckFileNames]) {
+      if (await File('$folderPath/$name').exists()) return true;
+    }
+    return false;
   }
 
   /// Return a list of available deck folder paths.
@@ -301,17 +309,23 @@ class DeckService {
     if (!await dir.exists()) return [];
     final paths = <String>[];
     await for (final entity in dir.list()) {
-      if (entity is Directory) {
-        final hasDeck =
-            await File('${entity.path}/$_deckFileName').exists() ||
-            await File('${entity.path}/deck.flashcarddeck').exists() ||
-            await File('${entity.path}/deck.txt').exists();
-        if (hasDeck) {
-          paths.add(entity.path);
-        }
+      if (entity is Directory && await _hasDeckFile(entity.path)) {
+        paths.add(entity.path);
       }
     }
     return paths;
+  }
+
+  /// Creates the standard asset sub-folders inside a new deck folder.
+  static Future<void> _createDeckAssetDirectories(String folderPath) async {
+    for (final sub in [
+      'assets/audio/front',
+      'assets/audio/back',
+      'assets/images/front',
+      'assets/images/back',
+    ]) {
+      await Directory('$folderPath/$sub').create(recursive: true);
+    }
   }
 
   /// Create a new empty deck on disk and return its [DeckSession].
@@ -324,16 +338,7 @@ class DeckService {
       throw ArgumentError('A deck named "$deckName" already exists.');
     }
     await folder.create(recursive: true);
-    await Directory(
-      '${folder.path}/assets/audio/front',
-    ).create(recursive: true);
-    await Directory('${folder.path}/assets/audio/back').create(recursive: true);
-    await Directory(
-      '${folder.path}/assets/images/front',
-    ).create(recursive: true);
-    await Directory(
-      '${folder.path}/assets/images/back',
-    ).create(recursive: true);
+    await _createDeckAssetDirectories(folder.path);
     final session = DeckSession(
       folderPath: folder.path,
       deckName: deckName,
@@ -399,7 +404,7 @@ class DeckService {
     await File('$destDirPath/$exampleSentinelName').writeAsString('');
     // Remove legacy deck files that may linger from older app versions.
     // Example decks are read-only so saveDeck() never runs their cleanup path.
-    for (final legacyName in ['deck.flashcarddeck', 'deck.txt']) {
+    for (final legacyName in _legacyDeckFileNames) {
       final legacy = File('$destDirPath/$legacyName');
       if (await legacy.exists()) await legacy.delete();
     }
@@ -496,16 +501,7 @@ class DeckService {
       );
     }
     await folder.create(recursive: true);
-    await Directory(
-      '${folder.path}/assets/audio/front',
-    ).create(recursive: true);
-    await Directory('${folder.path}/assets/audio/back').create(recursive: true);
-    await Directory(
-      '${folder.path}/assets/images/front',
-    ).create(recursive: true);
-    await Directory(
-      '${folder.path}/assets/images/back',
-    ).create(recursive: true);
+    await _createDeckAssetDirectories(folder.path);
     await File(
       '${folder.path}/$_deckFileName',
     ).writeAsString(buildDeckYaml(parsed.deckName, parsed.mode, parsed.cards));

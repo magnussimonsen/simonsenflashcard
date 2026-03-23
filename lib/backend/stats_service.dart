@@ -99,7 +99,7 @@ class StatsService {
 
     void flush() {
       if (currentId != null) {
-        stats[currentId!] = _buildCardStats(currentId!, currentFields);
+        stats[currentId] = _buildCardStats(currentId, currentFields);
         currentFields.clear();
       }
     }
@@ -154,7 +154,7 @@ class StatsService {
     for (final entry in stats.entries) {
       final id = entry.key.replaceAll('"', r'\"');
       final s = entry.value;
-      buf.writeln('"$id":')
+      buf.writeln('"$id":');
       buf.writeln('  again: ${s.again}');
       buf.writeln('  hard: ${s.hard}');
       buf.writeln('  good: ${s.good}');

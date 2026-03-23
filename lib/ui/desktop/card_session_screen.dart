@@ -269,11 +269,11 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
   void _onEditMenuSelected(_EditMenuAction action) {
     switch (action) {
       case _EditMenuAction.editCard:
-        _openEditDeck(
+        _openDeckEditor(
           initialEntryIndex: widget.session.entries.indexOf(_currentEntry),
         );
       case _EditMenuAction.editDeck:
-        _openEditDeck();
+        _openDeckEditor();
       case _EditMenuAction.deleteDeck:
         _showDeleteDeckConfirm();
       case _EditMenuAction.restoreExampleDecks:
@@ -596,12 +596,6 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     ).then((_) {
       if (mounted) setState(() {});
     });
-  }
-
-  /// Opens the deck editor for the current deck.
-  Future<void> _openEditDeck({int? initialEntryIndex}) async {
-    if (!mounted) return;
-    _openDeckEditor(initialEntryIndex: initialEntryIndex);
   }
 
   @override
