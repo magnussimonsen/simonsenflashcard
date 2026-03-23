@@ -102,9 +102,7 @@ class _CardContentState extends State<_CardContent> {
     if (widget.isReversed) {
       return card.frontQuestion;
     }
-    return card.backAnswer.isNotEmpty
-        ? card.backAnswer
-        : (card.backOptions.isNotEmpty ? card.backOptions[0] : '');
+    return card.backAnswer;
   }
 
   void _refreshHint() {
@@ -196,17 +194,10 @@ class _CardContentState extends State<_CardContent> {
     final isReversed = widget.isReversed;
 
     // When reversed, the back side acts as the question and front as the answer.
-    // Determine what appears on each side of the flip.
     final String questionText = isReversed
-        ? (card.backAnswer.isNotEmpty
-              ? card.backAnswer
-              : (card.backOptions.isNotEmpty ? card.backOptions[0] : '—'))
+        ? card.backAnswer
         : card.frontQuestion;
-    final String answerText = isReversed
-        ? card.frontQuestion
-        : (card.backAnswer.isNotEmpty
-              ? card.backAnswer
-              : (card.backOptions.isNotEmpty ? card.backOptions[0] : '—'));
+    final String answerText = isReversed ? card.frontQuestion : card.backAnswer;
     final String questionIpa = isReversed
         ? card.backIpaString
         : card.frontIpaString;
@@ -242,10 +233,12 @@ class _CardContentState extends State<_CardContent> {
     final hasAudioSlot = card.frontAudio != null || card.backAudio != null;
     final hasOptionsSlot = activeOptions.isNotEmpty;
 
-    final hasTypeAnswerSlot = widget.typeAnswerMode != TypeAnswerMode.off;
-
     // The correct answer (used for hint generation and back-side comparison).
     final String correctAnswer = _correctAnswer();
+
+    // Type-answer is only active when the mode is on AND there is an answer to compare against.
+    final hasTypeAnswerSlot =
+        widget.typeAnswerMode != TypeAnswerMode.off && correctAnswer.isNotEmpty;
 
     // Keep the controller's hint in sync — use cached value (stable per card).
     _typeAnswerController.hint = _cachedHint;
