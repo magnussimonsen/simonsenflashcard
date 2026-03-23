@@ -117,84 +117,53 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
   }
 
   Future<void> _showSrsSettings() async {
-    var tempMode = _sessionMode;
-    var tempLimit = _sessionCardLimit;
-    final limitController = TextEditingController(
-      text: tempLimit?.toString() ?? '',
-    );
-    await showDialog<void>(
+    final result = await showDialog<(SessionMode, int?)>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Study mode settings'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Study mode',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              RadioGroup<SessionMode>(
-                groupValue: tempMode,
-                onChanged: (v) => setDialogState(() => tempMode = v!),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    RadioListTile<SessionMode>(
-                      title: Text('Review (sequential)'),
-                      subtitle: Text('All cards in order'),
-                      value: SessionMode.review,
-                    ),
-                    RadioListTile<SessionMode>(
-                      title: Text('Weighted repetition'),
-                      subtitle: Text('Random — harder cards appear more often'),
-                      value: SessionMode.weightedRepetition,
-                    ),
-                  ],
-                ),
-              ),
-              if (tempMode == SessionMode.weightedRepetition) ...[
-                const SizedBox(height: 12),
-                const Text(
-                  'Max cards per session',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Text('Leave empty for unlimited'),
-                TextField(
-                  controller: limitController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(hintText: 'e.g. 20'),
-                ),
-              ],
-            ],
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Study mode'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, (SessionMode.review, null)),
+            child: const Text('Review (sequential)'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (tempMode == SessionMode.weightedRepetition) {
-                  final parsed = int.tryParse(limitController.text.trim());
-                  tempLimit = (parsed != null && parsed > 0) ? parsed : null;
-                } else {
-                  tempLimit = null;
-                }
-                Navigator.pop(ctx);
-              },
-              child: const Text('Apply'),
-            ),
-          ],
-        ),
+          const Divider(),
+          SimpleDialogOption(
+            onPressed: () =>
+                Navigator.pop(ctx, (SessionMode.weightedRepetition, 10)),
+            child: const Text('Weighted – 10 cards'),
+          ),
+          SimpleDialogOption(
+            onPressed: () =>
+                Navigator.pop(ctx, (SessionMode.weightedRepetition, 20)),
+            child: const Text('Weighted – 20 cards'),
+          ),
+          SimpleDialogOption(
+            onPressed: () =>
+                Navigator.pop(ctx, (SessionMode.weightedRepetition, 30)),
+            child: const Text('Weighted – 30 cards'),
+          ),
+          SimpleDialogOption(
+            onPressed: () =>
+                Navigator.pop(ctx, (SessionMode.weightedRepetition, 40)),
+            child: const Text('Weighted – 40 cards'),
+          ),
+          SimpleDialogOption(
+            onPressed: () =>
+                Navigator.pop(ctx, (SessionMode.weightedRepetition, 50)),
+            child: const Text('Weighted – 50 cards'),
+          ),
+          SimpleDialogOption(
+            onPressed: () =>
+                Navigator.pop(ctx, (SessionMode.weightedRepetition, null)),
+            child: const Text('Weighted – Unlimited'),
+          ),
+        ],
       ),
     );
-    limitController.dispose();
-    if (!mounted) return;
+    if (result == null || !mounted) return;
     setState(() {
-      _sessionMode = tempMode;
-      _sessionCardLimit = tempLimit;
+      _sessionMode = result.$1;
+      _sessionCardLimit = result.$2;
       _sessionReviewCount = 0;
     });
   }
@@ -892,7 +861,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               content: Text(
                 'Session limit reached ($_sessionCardLimit cards). '
-                'Tap "Continue" to keep going or change the limit in SRS settings.',
+                'Tap "Continue" to keep going or change the limit in Study mode.',
               ),
               actions: [
                 TextButton(
