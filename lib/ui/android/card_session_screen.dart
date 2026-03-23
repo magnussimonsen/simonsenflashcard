@@ -31,7 +31,11 @@ enum _FileMenuAction {
 
 enum _EditMenuAction {
   addCard,
-  editCard,
+  // editCard is intentionally absent on Android: DeckEditorScreen does not
+  // support jumping to a specific card (no initialEntryIndex). Tapping
+  // "Edit current card" would open the full deck editor at card 1 every time,
+  // which is indistinguishable from "Edit current deck" — misleading UX.
+  // The desktop version supports this via DeckEditorScreen(initialEntryIndex:).
   editDeck,
   deleteCard,
   deleteDeck,
@@ -236,8 +240,6 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
   void _onEditMenuSelected(_EditMenuAction action) {
     switch (action) {
       case _EditMenuAction.addCard:
-        _openEditDeck();
-      case _EditMenuAction.editCard:
         _openEditDeck();
       case _EditMenuAction.editDeck:
         _openEditDeck();
@@ -700,10 +702,6 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     const PopupMenuItem(
                       value: _EditMenuAction.addCard,
                       child: Text('+ Add new card'),
-                    ),
-                    const PopupMenuItem(
-                      value: _EditMenuAction.editCard,
-                      child: Text('Edit current card'),
                     ),
                     const PopupMenuItem(
                       value: _EditMenuAction.editDeck,
