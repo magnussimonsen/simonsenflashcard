@@ -176,9 +176,17 @@ class _EditCardWidgetState extends State<EditCardWidget> {
   // ── actions ───────────────────────────────────────────────────────────────
   /// Saves the current card. Returns true if successful, false if validation failed.
   bool _save() {
-    if (_frontQuestionCtrl.text.trim().isEmpty) {
+    final frontHasContent =
+        _frontQuestionCtrl.text.trim().isNotEmpty ||
+        _frontLatexCtrl.text.trim().isNotEmpty ||
+        _frontIpaCtrl.text.trim().isNotEmpty;
+    if (!frontHasContent) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Front question is required.')),
+        const SnackBar(
+          content: Text(
+            'Add at least one front field: question, LaTeX, or IPA.',
+          ),
+        ),
       );
       return false;
     }

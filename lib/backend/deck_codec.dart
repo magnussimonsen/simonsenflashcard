@@ -103,15 +103,25 @@ CardModel? _parseYamlCard(YamlMap map) {
     }
   }
 
-  if (frontQuestion.isEmpty) return null;
+  // A card must have at least one visible element on the front.
+  final bool frontHasContent =
+      frontQuestion.isNotEmpty ||
+      frontLatex.isNotEmpty ||
+      frontIpa.isNotEmpty ||
+      frontImage != null;
+  if (!frontHasContent) return null;
 
   // Title is required in the editor but optional in YAML — fall back to
-  // frontQuestion so AI-generated or hand-written decks without a title field
-  // always produce a valid, human-readable card.
+  // the first non-empty content field so hand-written/AI decks without a
+  // title always produce a human-readable card.
   final rawTitle = map['title']?.toString().trim();
-  final title = (rawTitle == null || rawTitle.isEmpty)
+  final title = (rawTitle != null && rawTitle.isNotEmpty)
+      ? rawTitle
+      : frontQuestion.isNotEmpty
       ? frontQuestion
-      : rawTitle;
+      : frontLatex.isNotEmpty
+      ? frontLatex
+      : frontIpa;
 
   final backMap = map['back'];
   String backAnswer = '';

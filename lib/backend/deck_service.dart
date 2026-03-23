@@ -479,14 +479,21 @@ class DeckService {
     if (parsed.cards.isEmpty) {
       throw const FormatException(
         'No valid cards found in the deck file.\n'
-        'Each card must have a front question.',
+        'Each card must have at least one of: front question, front LaTeX, '
+        'front IPA, or front image.',
       );
     }
     for (int i = 0; i < parsed.cards.length; i++) {
       final card = parsed.cards[i];
-      if (card.frontQuestion.isEmpty) {
+      final frontOk =
+          card.frontQuestion.isNotEmpty ||
+          card.frontLatexString.isNotEmpty ||
+          card.frontIpaString.isNotEmpty ||
+          card.frontImage != null;
+      if (!frontOk) {
         throw FormatException(
-          'Card ${i + 1} ("${card.title}") has an empty front question.',
+          'Card ${i + 1} ("${card.title}") has no visible front content.\n'
+          'Add at least one of: question, latex, ipa, or image.',
         );
       }
     }

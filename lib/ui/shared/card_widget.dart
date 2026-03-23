@@ -287,22 +287,23 @@ class _CardContentState extends State<_CardContent> {
             ),
           ),
 
-        // ── Main text zone — natural height ─────────────────────────────
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Center(
-            child: Text(
-              mainText,
-              style: isFlipped
-                  ? Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    )
-                  : Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
+        // ── Main text zone — natural height (hidden when empty) ──────────
+        if (mainText.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Center(
+              child: Text(
+                mainText,
+                style: isFlipped
+                    ? Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      )
+                    : Theme.of(context).textTheme.headlineSmall,
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
-        ),
 
         // ── LaTeX zone — natural height ──────────────────────────────────
         if (hasLatexSlot && latexText.isNotEmpty)
