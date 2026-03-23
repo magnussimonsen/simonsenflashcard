@@ -244,11 +244,50 @@ class DeckService {
   /// Validates that [name] is safe to use as a deck folder name.
   /// Throws [ArgumentError] if it is empty or contains path-traversal characters.
   static void _validateDeckName(String name) {
-    if (name.isEmpty) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) {
       throw ArgumentError('Deck name must not be empty.');
+    }
+    if (name != trimmed) {
+      throw ArgumentError('Deck name must not start or end with whitespace.');
     }
     if (name.contains('/') || name.contains('\\') || name == '..') {
       throw ArgumentError('Deck name "$name" contains invalid characters.');
+    }
+    const invalidChars = ['<', '>', '"', ':', '|', '?', '*'];
+    if (invalidChars.any(name.contains)) {
+      throw ArgumentError('Deck name "$name" contains invalid characters.');
+    }
+    if (name.endsWith('.')) {
+      throw ArgumentError('Deck name must not end with a period.');
+    }
+    final baseName = name.split('.').first.toUpperCase();
+    const reserved = {
+      'CON',
+      'PRN',
+      'AUX',
+      'NUL',
+      'COM1',
+      'COM2',
+      'COM3',
+      'COM4',
+      'COM5',
+      'COM6',
+      'COM7',
+      'COM8',
+      'COM9',
+      'LPT1',
+      'LPT2',
+      'LPT3',
+      'LPT4',
+      'LPT5',
+      'LPT6',
+      'LPT7',
+      'LPT8',
+      'LPT9',
+    };
+    if (reserved.contains(baseName)) {
+      throw ArgumentError('Deck name "$name" is reserved on Windows.');
     }
   }
 

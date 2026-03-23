@@ -236,9 +236,8 @@ class _CardContentState extends State<_CardContent> {
     // The correct answer (used for hint generation and back-side comparison).
     final String correctAnswer = _correctAnswer();
 
-    // Type-answer is only active when the mode is on AND there is an answer to compare against.
-    final hasTypeAnswerSlot =
-        widget.typeAnswerMode != TypeAnswerMode.off && correctAnswer.isNotEmpty;
+    // Type-answer is active whenever the mode is on, even if the answer is empty.
+    final hasTypeAnswerSlot = widget.typeAnswerMode != TypeAnswerMode.off;
 
     // Keep the controller's hint in sync — use cached value (stable per card).
     _typeAnswerController.hint = _cachedHint;

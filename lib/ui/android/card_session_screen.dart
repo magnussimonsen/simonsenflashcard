@@ -52,7 +52,8 @@ class CardSessionScreen extends StatefulWidget {
   State<CardSessionScreen> createState() => _CardSessionScreenState();
 }
 
-class _CardSessionScreenState extends State<CardSessionScreen> {
+class _CardSessionScreenState extends State<CardSessionScreen>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
   bool _isFlipped = false;
   bool _isReversed = false;
@@ -75,6 +76,30 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
   List<CardEntry> get _activeEntries => widget.session.activeEntries;
   CardEntry get _currentEntry => _activeEntries[_currentIndex];
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _statsService.flushPendingWrites(
+        deckFolderPath: widget.session.folderPath,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _statsService.flushPendingWrites(deckFolderPath: widget.session.folderPath);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   void _flip() {
     if (!_isFlipped && !_limitReached) setState(() => _isFlipped = true);
   }
@@ -91,12 +116,16 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
       switch (rating) {
         case CardRating.again:
           _sessionAgain++;
+          break;
         case CardRating.hard:
           _sessionHard++;
+          break;
         case CardRating.good:
           _sessionGood++;
+          break;
         case CardRating.easy:
           _sessionEasy++;
+          break;
       }
       _sessionReviewCount++;
       if (_sessionMode == SessionMode.weightedRepetition) {
@@ -172,6 +201,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     switch (action) {
       case _FileMenuAction.openDeck:
         _openFromList();
+        break;
       case _FileMenuAction.newDeck:
         Navigator.push(
           context,
@@ -179,28 +209,36 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
             builder: (_) => const DeckEditorScreen(deckFolderPath: null),
           ),
         );
+        break;
       case _FileMenuAction.importDeck:
         _importDeck();
+        break;
       case _FileMenuAction.saveDeck:
         _saveDeck();
+        break;
       case _FileMenuAction.saveDeckAs:
         _saveDeckAs();
+        break;
       case _FileMenuAction.showHelp:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const HelpScreen()),
         );
+        break;
       case _FileMenuAction.showAiPrompt:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const AiPromptScreen()),
         );
+        break;
       case _FileMenuAction.showAbout:
         showAboutAppDialog(context);
+        break;
       case _FileMenuAction.toggleDarkMode:
         appThemeMode.value = appThemeMode.value == ThemeMode.dark
             ? ThemeMode.light
             : ThemeMode.dark;
+        break;
       case _FileMenuAction.quit:
         SystemNavigator.pop();
     }
@@ -210,14 +248,19 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     switch (action) {
       case _EditMenuAction.addCard:
         _openEditDeck();
+        break;
       case _EditMenuAction.editDeck:
         _openEditDeck();
+        break;
       case _EditMenuAction.deleteCard:
         _showDeleteCardConfirm();
+        break;
       case _EditMenuAction.deleteDeck:
         _showDeleteDeckConfirm();
+        break;
       case _EditMenuAction.restoreExampleDecks:
         _restoreExampleDecks();
+        break;
     }
   }
 
@@ -598,6 +641,13 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     final hasOptions =
         card.backOptions.isNotEmpty || card.frontOptions.isNotEmpty;
     final hasImage = card.frontImage != null || card.backImage != null;
+    final String typeAnswerTarget = _isReversed
+        ? card.frontQuestion
+        : card.backAnswer;
+    final bool hasTypeAnswerTarget = typeAnswerTarget.trim().isNotEmpty;
+    final TypeAnswerMode effectiveTypeAnswerMode = hasTypeAnswerTarget
+        ? _typeAnswerMode
+        : TypeAnswerMode.off;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -758,43 +808,44 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     tooltip: _showImage ? 'Hide image' : 'Show image',
                     onPressed: () => setState(() => _showImage = !_showImage),
                   ),
-                PopupMenuButton<TypeAnswerMode>(
-                  icon: Icon(
-                    _typeAnswerMode == TypeAnswerMode.off
-                        ? Icons.keyboard_hide
-                        : Icons.keyboard,
-                    color: _typeAnswerMode == TypeAnswerMode.off
-                        ? null
-                        : Theme.of(context).colorScheme.primary,
+                if (hasTypeAnswerTarget)
+                  PopupMenuButton<TypeAnswerMode>(
+                    icon: Icon(
+                      _typeAnswerMode == TypeAnswerMode.off
+                          ? Icons.keyboard_hide
+                          : Icons.keyboard,
+                      color: _typeAnswerMode == TypeAnswerMode.off
+                          ? null
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                    tooltip: 'Type answer mode',
+                    onSelected: (mode) => setState(() {
+                      _typeAnswerMode = mode;
+                      if (mode != TypeAnswerMode.off) _showOptions = false;
+                    }),
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(
+                        value: TypeAnswerMode.off,
+                        child: Text('Off'),
+                      ),
+                      PopupMenuItem(
+                        value: TypeAnswerMode.hint0,
+                        child: Text('On – show 0% hint'),
+                      ),
+                      PopupMenuItem(
+                        value: TypeAnswerMode.hint25,
+                        child: Text('On – show 25% hint'),
+                      ),
+                      PopupMenuItem(
+                        value: TypeAnswerMode.hint50,
+                        child: Text('On – show 50% hint'),
+                      ),
+                      PopupMenuItem(
+                        value: TypeAnswerMode.hint75,
+                        child: Text('On – show 75% hint'),
+                      ),
+                    ],
                   ),
-                  tooltip: 'Type answer mode',
-                  onSelected: (mode) => setState(() {
-                    _typeAnswerMode = mode;
-                    if (mode != TypeAnswerMode.off) _showOptions = false;
-                  }),
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(
-                      value: TypeAnswerMode.off,
-                      child: Text('Off'),
-                    ),
-                    PopupMenuItem(
-                      value: TypeAnswerMode.hint0,
-                      child: Text('On – show 0% hint'),
-                    ),
-                    PopupMenuItem(
-                      value: TypeAnswerMode.hint25,
-                      child: Text('On – show 25% hint'),
-                    ),
-                    PopupMenuItem(
-                      value: TypeAnswerMode.hint50,
-                      child: Text('On – show 50% hint'),
-                    ),
-                    PopupMenuItem(
-                      value: TypeAnswerMode.hint75,
-                      child: Text('On – show 75% hint'),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
@@ -883,7 +934,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
               deckFolderPath: widget.session.folderPath,
               showOptions: _showOptions,
               showImage: _showImage,
-              typeAnswerMode: _typeAnswerMode,
+              typeAnswerMode: effectiveTypeAnswerMode,
             ),
           ),
           Visibility(

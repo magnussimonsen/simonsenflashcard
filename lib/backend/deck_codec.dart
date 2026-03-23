@@ -47,7 +47,7 @@ DeckContents _parseDeckYaml(String content) {
   if (doc is! YamlMap) {
     throw const FormatException('Invalid deck file: expected a YAML mapping.');
   }
-  final deckName = doc['deckname']?.toString() ?? '';
+  final deckName = doc['deckname']?.toString().trim() ?? '';
   final mode = doc['mode']?.toString() ?? 'Normal';
   final cards = <CardModel>[];
   var hadGeneratedIds = false;

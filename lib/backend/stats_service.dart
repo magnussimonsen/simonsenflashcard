@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -31,6 +32,13 @@ class CardStats {
 /// Handles reading and writing per-deck review statistics.
 /// Stats are stored in `decks/<deck_name>/deck.stats.yaml`
 class StatsService {
+  // Debounce stats writes to reduce IO churn during rapid reviews.
+  static const Duration _statsWriteDebounce = Duration(milliseconds: 400);
+  // Track pending debounced writes per deck folder.
+  final Map<String, Timer> _pendingWriteTimers = {};
+  // Cache snapshots for the pending write so flush can persist them.
+  final Map<String, Map<String, CardStats>> _pendingWriteCaches = {};
+
   /// Load stats for all cards in a deck.
   Future<Map<String, CardStats>> loadStats(String deckFolderPath) async {
     final file = File('$deckFolderPath/deck.stats.yaml');
@@ -62,7 +70,41 @@ class StatsService {
     _applyRating(cardStats, rating);
     cardStats.nextDue = now.add(Duration(days: _daysUntilDue(rating)));
     cache[cardId] = cardStats;
-    await saveStats(deckFolderPath, cache);
+    _scheduleStatsSave(deckFolderPath, cache);
+  }
+
+  void _scheduleStatsSave(String deckFolderPath, Map<String, CardStats> cache) {
+    _pendingWriteTimers[deckFolderPath]?.cancel();
+    _pendingWriteCaches[deckFolderPath] = cache;
+    // Reset the debounce window and write after the user pauses input.
+    _pendingWriteTimers[deckFolderPath] = Timer(_statsWriteDebounce, () async {
+      _pendingWriteTimers.remove(deckFolderPath);
+      final pending = _pendingWriteCaches.remove(deckFolderPath) ?? cache;
+      await saveStats(deckFolderPath, pending);
+    });
+  }
+
+  /// Flush any pending debounced stats writes.
+  /// Call this on app pause/exit to minimize lost progress.
+  Future<void> flushPendingWrites({String? deckFolderPath}) async {
+    if (deckFolderPath != null) {
+      final timer = _pendingWriteTimers.remove(deckFolderPath);
+      timer?.cancel();
+      final pending = _pendingWriteCaches.remove(deckFolderPath);
+      if (pending != null) {
+        await saveStats(deckFolderPath, pending);
+      }
+      return;
+    }
+    final paths = _pendingWriteTimers.keys.toList();
+    for (final path in paths) {
+      final timer = _pendingWriteTimers.remove(path);
+      timer?.cancel();
+      final pending = _pendingWriteCaches.remove(path);
+      if (pending != null) {
+        await saveStats(path, pending);
+      }
+    }
   }
 
   /// Increments the appropriate counter on [stats] for [rating].
@@ -70,15 +112,20 @@ class StatsService {
     switch (rating) {
       case CardRating.again:
         stats.again++;
+        break;
       case CardRating.hard:
         stats.hard++;
+        break;
       case CardRating.good:
         stats.good++;
+        break;
       case CardRating.easy:
         stats.easy++;
+        break;
     }
   }
 
+  /// The card due feature is DEPRECATED. We use a much simpler SRS algorithm based on random weighted repetition, which does not require tracking nextDue or lastReviewed. These fields are still updated for informational purposes, but they do not affect card scheduling.
   /// Returns the number of days until the next review for a given [rating].
   /// These are fixed intervals; adaptive SRS (ease factor) is not yet implemented.
   static int _daysUntilDue(CardRating rating) {

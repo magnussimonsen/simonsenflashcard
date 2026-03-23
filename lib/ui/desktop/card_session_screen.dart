@@ -45,7 +45,8 @@ class CardSessionScreen extends StatefulWidget {
   State<CardSessionScreen> createState() => _CardSessionScreenState();
 }
 
-class _CardSessionScreenState extends State<CardSessionScreen> {
+class _CardSessionScreenState extends State<CardSessionScreen>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
   bool _isFlipped = false;
   bool _isReversed = false;
@@ -84,12 +85,16 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
       switch (rating) {
         case CardRating.again:
           _sessionAgain++;
+          break;
         case CardRating.hard:
           _sessionHard++;
+          break;
         case CardRating.good:
           _sessionGood++;
+          break;
         case CardRating.easy:
           _sessionEasy++;
+          break;
       }
       _sessionReviewCount++;
       if (_sessionMode == SessionMode.weightedRepetition) {
@@ -197,6 +202,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     switch (action) {
       case _FileMenuAction.openDeck:
         _openFromList();
+        break;
       case _FileMenuAction.newDeck:
         Navigator.push(
           context,
@@ -206,28 +212,36 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         ).then((_) {
           if (mounted) setState(() {});
         });
+        break;
       case _FileMenuAction.importDeck:
         _importDeck();
+        break;
       case _FileMenuAction.saveDeck:
         _saveDeck();
+        break;
       case _FileMenuAction.saveDeckAs:
         _saveDeckAs();
+        break;
       case _FileMenuAction.showHelp:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const HelpScreen()),
         );
+        break;
       case _FileMenuAction.showAiPrompt:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const AiPromptScreen()),
         );
+        break;
       case _FileMenuAction.showAbout:
         showAboutAppDialog(context);
+        break;
       case _FileMenuAction.toggleDarkMode:
         appThemeMode.value = appThemeMode.value == ThemeMode.dark
             ? ThemeMode.light
             : ThemeMode.dark;
+        break;
       case _FileMenuAction.quit:
         exit(0);
     }
@@ -239,12 +253,16 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         _openDeckEditor(
           initialEntryIndex: widget.session.entries.indexOf(_currentEntry),
         );
+        break;
       case _EditMenuAction.editDeck:
         _openDeckEditor();
+        break;
       case _EditMenuAction.deleteDeck:
         _showDeleteDeckConfirm();
+        break;
       case _EditMenuAction.restoreExampleDecks:
         _restoreExampleDecks();
+        break;
     }
   }
 
@@ -551,8 +569,8 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     }
   }
 
-  void _openDeckEditor({int? initialEntryIndex}) {
-    Navigator.push(
+  Future<void> _openDeckEditor({int? initialEntryIndex}) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => DeckEditorScreen(
@@ -560,19 +578,61 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
           initialEntryIndex: initialEntryIndex,
         ),
       ),
-    ).then((_) {
-      if (mounted) setState(() {});
-    });
+    );
+    await _reloadSessionEntries();
+  }
+
+  /// Reloads entries and stats from disk into the live session after the
+  /// deck editor returns. Keeps [_currentIndex] in bounds.
+  Future<void> _reloadSessionEntries() async {
+    final path = widget.session.folderPath;
+    if (path.isEmpty || !mounted) return;
+    try {
+      final fresh = await DeckService().loadSession(path);
+      if (!mounted) return;
+      widget.session.entries
+        ..clear()
+        ..addAll(fresh.entries);
+      widget.session.statsCache
+        ..clear()
+        ..addAll(fresh.statsCache);
+      widget.session.deckName = fresh.deckName;
+      setState(() {
+        if (_activeEntries.isEmpty) {
+          _currentIndex = 0;
+        } else if (_currentIndex >= _activeEntries.length) {
+          _currentIndex = _activeEntries.length - 1;
+        }
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     HardwareKeyboard.instance.addHandler(_handleKey);
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _statsService.flushPendingWrites(
+        deckFolderPath: widget.session.folderPath,
+      );
+    }
+  }
+
+  @override
   void dispose() {
+    _statsService.flushPendingWrites(deckFolderPath: widget.session.folderPath);
+    WidgetsBinding.instance.removeObserver(this);
     HardwareKeyboard.instance.removeHandler(_handleKey);
     super.dispose();
   }
@@ -592,6 +652,13 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     final hasOptions =
         card.backOptions.isNotEmpty || card.frontOptions.isNotEmpty;
     final hasImage = card.frontImage != null || card.backImage != null;
+    final String typeAnswerTarget = _isReversed
+        ? card.frontQuestion
+        : card.backAnswer;
+    final bool hasTypeAnswerTarget = typeAnswerTarget.trim().isNotEmpty;
+    final TypeAnswerMode effectiveTypeAnswerMode = hasTypeAnswerTarget
+        ? _typeAnswerMode
+        : TypeAnswerMode.off;
 
     return Scaffold(
       appBar: AppBar(
@@ -746,43 +813,44 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                     onPressed: () =>
                         setState(() => _showOptions = !_showOptions),
                   ),
-                PopupMenuButton<TypeAnswerMode>(
-                  icon: Icon(
-                    _typeAnswerMode == TypeAnswerMode.off
-                        ? Icons.keyboard_hide
-                        : Icons.keyboard,
-                    color: _typeAnswerMode == TypeAnswerMode.off
-                        ? null
-                        : Theme.of(context).colorScheme.primary,
+                if (hasTypeAnswerTarget)
+                  PopupMenuButton<TypeAnswerMode>(
+                    icon: Icon(
+                      _typeAnswerMode == TypeAnswerMode.off
+                          ? Icons.keyboard_hide
+                          : Icons.keyboard,
+                      color: _typeAnswerMode == TypeAnswerMode.off
+                          ? null
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                    tooltip: 'Type answer mode',
+                    onSelected: (mode) => setState(() {
+                      _typeAnswerMode = mode;
+                      if (mode != TypeAnswerMode.off) _showOptions = false;
+                    }),
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(
+                        value: TypeAnswerMode.off,
+                        child: Text('Off'),
+                      ),
+                      PopupMenuItem(
+                        value: TypeAnswerMode.hint0,
+                        child: Text('On – show 0% hint'),
+                      ),
+                      PopupMenuItem(
+                        value: TypeAnswerMode.hint25,
+                        child: Text('On – show 25% hint'),
+                      ),
+                      PopupMenuItem(
+                        value: TypeAnswerMode.hint50,
+                        child: Text('On – show 50% hint'),
+                      ),
+                      PopupMenuItem(
+                        value: TypeAnswerMode.hint75,
+                        child: Text('On – show 75% hint'),
+                      ),
+                    ],
                   ),
-                  tooltip: 'Type answer mode',
-                  onSelected: (mode) => setState(() {
-                    _typeAnswerMode = mode;
-                    if (mode != TypeAnswerMode.off) _showOptions = false;
-                  }),
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(
-                      value: TypeAnswerMode.off,
-                      child: Text('Off'),
-                    ),
-                    PopupMenuItem(
-                      value: TypeAnswerMode.hint0,
-                      child: Text('On – show 0% hint'),
-                    ),
-                    PopupMenuItem(
-                      value: TypeAnswerMode.hint25,
-                      child: Text('On – show 25% hint'),
-                    ),
-                    PopupMenuItem(
-                      value: TypeAnswerMode.hint50,
-                      child: Text('On – show 50% hint'),
-                    ),
-                    PopupMenuItem(
-                      value: TypeAnswerMode.hint75,
-                      child: Text('On – show 75% hint'),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
@@ -871,7 +939,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
               deckFolderPath: widget.session.folderPath,
               showImage: _showImage,
               showOptions: _showOptions,
-              typeAnswerMode: _typeAnswerMode,
+              typeAnswerMode: effectiveTypeAnswerMode,
             ),
           ),
           Visibility(
