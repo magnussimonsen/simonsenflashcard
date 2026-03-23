@@ -63,7 +63,7 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
         mode: 'Normal',
         entries: [
           CardEntry(
-            card: const CardModel(title: '', frontQuestion: ''),
+            card: const CardModel(id: '', title: '', frontQuestion: ''),
           ),
         ],
         statsCache: {},

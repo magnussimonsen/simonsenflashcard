@@ -146,7 +146,7 @@ class _CardContentState extends State<_CardContent> {
   @override
   void didUpdateWidget(_CardContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.card.title != widget.card.title ||
+    if (oldWidget.card.id != widget.card.id ||
         oldWidget.typeAnswerMode != widget.typeAnswerMode ||
         oldWidget.isReversed != widget.isReversed) {
       _player.stop();

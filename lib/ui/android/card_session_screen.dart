@@ -79,7 +79,7 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     await _statsService.recordRatingCached(
       widget.session.statsCache,
       widget.session.folderPath,
-      _currentEntry.card.title,
+      _currentEntry.card.id,
       rating,
     );
     if (!mounted) return;

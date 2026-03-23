@@ -1,3 +1,4 @@
+import 'package:uuid/uuid.dart';
 import 'package:yaml/yaml.dart';
 import 'card_model.dart';
 
@@ -8,10 +9,16 @@ class DeckContents {
   final String mode;
   final List<CardModel> cards;
 
+  /// True if any card received an auto-generated UUID (i.e. id was absent from
+  /// the source file). The loader uses this to re-save the deck immediately so
+  /// generated IDs are persisted for future sessions.
+  final bool hadGeneratedIds;
+
   const DeckContents({
     required this.deckName,
     required this.mode,
     required this.cards,
+    this.hadGeneratedIds = false,
   });
 }
 
@@ -43,23 +50,37 @@ DeckContents _parseDeckYaml(String content) {
   final deckName = doc['deckname']?.toString() ?? '';
   final mode = doc['mode']?.toString() ?? 'Normal';
   final cards = <CardModel>[];
+  var hadGeneratedIds = false;
 
   final rawCards = doc['cards'];
   if (rawCards is YamlList) {
     for (final rawCard in rawCards) {
       if (rawCard is! YamlMap) continue;
+      final hasId =
+          rawCard.containsKey('id') &&
+          (rawCard['id']?.toString().trim().isNotEmpty ?? false);
       final card = _parseYamlCard(rawCard);
-      if (card != null) cards.add(card);
+      if (card != null) {
+        if (!hasId) hadGeneratedIds = true;
+        cards.add(card);
+      }
     }
   }
 
-  return DeckContents(deckName: deckName, mode: mode, cards: cards);
+  return DeckContents(
+    deckName: deckName,
+    mode: mode,
+    cards: cards,
+    hadGeneratedIds: hadGeneratedIds,
+  );
 }
 
 CardModel? _parseYamlCard(YamlMap map) {
-  final title = map['title']?.toString();
-  if (title == null || title.isEmpty) return null;
+  // Read or generate a stable UUID for this card.
+  final rawId = map['id']?.toString().trim();
+  final id = (rawId == null || rawId.isEmpty) ? const Uuid().v4() : rawId;
 
+  // Parse front first so frontQuestion can serve as the title fallback.
   final frontMap = map['front'];
   String frontQuestion = '';
   String frontLatex = '';
@@ -84,6 +105,14 @@ CardModel? _parseYamlCard(YamlMap map) {
 
   if (frontQuestion.isEmpty) return null;
 
+  // Title is required in the editor but optional in YAML — fall back to
+  // frontQuestion so AI-generated or hand-written decks without a title field
+  // always produce a valid, human-readable card.
+  final rawTitle = map['title']?.toString().trim();
+  final title = (rawTitle == null || rawTitle.isEmpty)
+      ? frontQuestion
+      : rawTitle;
+
   final backMap = map['back'];
   String backAnswer = '';
   String backLatex = '';
@@ -107,6 +136,7 @@ CardModel? _parseYamlCard(YamlMap map) {
   }
 
   return CardModel(
+    id: id,
     title: title,
     frontQuestion: frontQuestion,
     frontLatexString: frontLatex,
@@ -134,7 +164,8 @@ String buildDeckYaml(String deckName, String mode, List<CardModel> cards) {
   }
   buf.writeln('cards:');
   for (final card in cards) {
-    buf.writeln('  - title: ${_q(card.title)}');
+    buf.writeln('  - id: ${_q(card.id)}');
+    buf.writeln('    title: ${_q(card.title)}');
     buf.writeln('    front:');
     buf.writeln('      question: ${_q(card.frontQuestion)}');
     if (card.frontLatexString.isNotEmpty) {
@@ -208,7 +239,12 @@ DeckContents _parseDeckLegacy(String content) {
     if (card != null) cards.add(card);
   }
 
-  return DeckContents(deckName: deckName, mode: mode, cards: cards);
+  return DeckContents(
+    deckName: deckName,
+    mode: mode,
+    cards: cards,
+    hadGeneratedIds: true, // legacy format never has IDs
+  );
 }
 
 List<String> _splitOnSeparator(String content) {
@@ -276,6 +312,7 @@ CardModel? _parseLegacyCardBlock(List<String> lines) {
   if (backImage == 'none' || backImage == '') backImage = null;
 
   return CardModel(
+    id: const Uuid().v4(), // legacy format never had IDs; generate a fresh one
     title: title,
     frontQuestion: frontQuestion,
     frontLatexString: fields['Front latex string'] ?? '',

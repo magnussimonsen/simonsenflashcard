@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle, AssetManifest;
 import 'package:path_provider/path_provider.dart';
 import 'card_entry.dart';
+import 'card_model.dart';
 import 'deck_codec.dart';
 import 'deck_session.dart';
 import 'stats_service.dart';
@@ -148,19 +149,73 @@ class DeckService {
     final content = await file.readAsString();
     final parsed = parseDeck(content);
     final statsMap = await StatsService().loadStats(deckFolderPath);
+
+    // One-time migration: re-key stats from card title to UUID.
+    final migratedStats = _migrateStatsIfNeeded(statsMap, parsed.cards);
+    final effectiveStats = migratedStats ?? statsMap;
+    if (migratedStats != null) {
+      await StatsService().saveStats(deckFolderPath, migratedStats);
+    }
+
     final entries = [
       for (final card in parsed.cards)
-        CardEntry(card: card, stats: statsMap[card.title]),
+        CardEntry(card: card, stats: effectiveStats[card.id]),
     ];
-    return DeckSession(
+    final session = DeckSession(
       folderPath: deckFolderPath,
       deckName: parsed.deckName.isNotEmpty
           ? parsed.deckName
           : deckFolderName(deckFolderPath),
       mode: parsed.mode,
       entries: entries,
-      statsCache: statsMap,
+      statsCache: effectiveStats,
     );
+
+    // Persist auto-generated UUIDs immediately so they survive future loads.
+    if (parsed.hadGeneratedIds) {
+      await saveDeck(session);
+    }
+
+    return session;
+  }
+
+  /// Migrates a title-keyed stats map to UUID-keyed using [cards] for matching.
+  ///
+  /// Returns the migrated map, or null if the stats are already UUID-keyed
+  /// (or empty). Orphaned stats entries (no matching card) are discarded.
+  static Map<String, CardStats>? _migrateStatsIfNeeded(
+    Map<String, CardStats> stats,
+    List<CardModel> cards,
+  ) {
+    if (stats.isEmpty) return null;
+    final uuidRe = RegExp(
+      r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+      caseSensitive: false,
+    );
+    if (stats.keys.every(uuidRe.hasMatch)) return null; // already UUID-keyed
+
+    final migrated = <String, CardStats>{};
+    for (final entry in stats.entries) {
+      CardModel? match;
+      for (final card in cards) {
+        if (card.title == entry.key || card.frontQuestion == entry.key) {
+          match = card;
+          break;
+        }
+      }
+      if (match == null) continue; // orphaned entry — discard
+      final s = entry.value;
+      migrated[match.id] = CardStats(
+        cardId: match.id,
+        again: s.again,
+        hard: s.hard,
+        good: s.good,
+        easy: s.easy,
+        lastReviewed: s.lastReviewed,
+        nextDue: s.nextDue,
+      );
+    }
+    return migrated;
   }
 
   /// Save the current session in-place (overwrite).
@@ -419,14 +474,11 @@ class DeckService {
     if (parsed.cards.isEmpty) {
       throw const FormatException(
         'No valid cards found in the deck file.\n'
-        'Each card must have a title and a front question.',
+        'Each card must have a front question.',
       );
     }
     for (int i = 0; i < parsed.cards.length; i++) {
       final card = parsed.cards[i];
-      if (card.title.isEmpty) {
-        throw FormatException('Card ${i + 1} has an empty title.');
-      }
       if (card.frontQuestion.isEmpty) {
         throw FormatException(
           'Card ${i + 1} ("${card.title}") has an empty front question.',

@@ -1,5 +1,8 @@
 /// Represents a single flashcard.
 class CardModel {
+  /// Stable UUID v4 — generated once at creation and never regenerated on edit.
+  final String id;
+
   final String title;
   final String frontQuestion;
   final String frontLatexString;
@@ -20,6 +23,7 @@ class CardModel {
   final List<String> backOptions;
 
   const CardModel({
+    required this.id,
     required this.title,
     required this.frontQuestion,
     this.frontLatexString = '',

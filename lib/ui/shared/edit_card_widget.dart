@@ -36,6 +36,9 @@ class EditCardWidget extends StatefulWidget {
 }
 
 class _EditCardWidgetState extends State<EditCardWidget> {
+  // UUID — generated once for new cards; copied from existing card on edit.
+  late String _cardId;
+
   // ── text controllers ─────────────────────────────────────────────────────
   late final TextEditingController _titleCtrl;
   late final TextEditingController _frontQuestionCtrl;
@@ -69,7 +72,12 @@ class _EditCardWidgetState extends State<EditCardWidget> {
   @override
   void initState() {
     super.initState();
-    final c = widget.initial ?? const CardModel(title: '', frontQuestion: '');
+    // Preserve existing UUID on edit; generate a fresh one for new or
+    // placeholder cards (id absent or empty string).
+    final existingId = widget.initial?.id ?? '';
+    _cardId = existingId.isNotEmpty ? existingId : const Uuid().v4();
+    final c =
+        widget.initial ?? CardModel(id: _cardId, title: '', frontQuestion: '');
     _original = c;
     _titleCtrl = TextEditingController(text: c.title);
     _frontQuestionCtrl = TextEditingController(text: c.frontQuestion);
@@ -142,6 +150,7 @@ class _EditCardWidgetState extends State<EditCardWidget> {
   CardModel _buildModel() {
     String? nullIfEmpty(String s) => s.trim().isEmpty ? null : s.trim();
     return CardModel(
+      id: _cardId,
       title: _titleCtrl.text.trim(),
       frontQuestion: _frontQuestionCtrl.text.trim(),
       frontIpaString: _frontIpaCtrl.text.trim(),
@@ -167,10 +176,9 @@ class _EditCardWidgetState extends State<EditCardWidget> {
   // ── actions ───────────────────────────────────────────────────────────────
   /// Saves the current card. Returns true if successful, false if validation failed.
   bool _save() {
-    if (_titleCtrl.text.trim().isEmpty ||
-        _frontQuestionCtrl.text.trim().isEmpty) {
+    if (_frontQuestionCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Title and front question are required.')),
+        const SnackBar(content: Text('Front question is required.')),
       );
       return false;
     }

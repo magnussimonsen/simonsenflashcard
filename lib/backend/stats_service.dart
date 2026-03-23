@@ -9,7 +9,7 @@ enum CardRating { again, hard, good, easy }
 
 /// Per-card review statistics.
 class CardStats {
-  final String cardTitle;
+  final String cardId;
   int again;
   int hard;
   int good;
@@ -18,7 +18,7 @@ class CardStats {
   DateTime? nextDue;
 
   CardStats({
-    required this.cardTitle,
+    required this.cardId,
     this.again = 0,
     this.hard = 0,
     this.good = 0,
@@ -53,15 +53,15 @@ class StatsService {
   Future<void> recordRatingCached(
     Map<String, CardStats> cache,
     String deckFolderPath,
-    String cardTitle,
+    String cardId,
     CardRating rating,
   ) async {
-    final cardStats = cache[cardTitle] ?? CardStats(cardTitle: cardTitle);
+    final cardStats = cache[cardId] ?? CardStats(cardId: cardId);
     final now = DateTime.now();
     cardStats.lastReviewed = now;
     _applyRating(cardStats, rating);
     cardStats.nextDue = now.add(Duration(days: _daysUntilDue(rating)));
-    cache[cardTitle] = cardStats;
+    cache[cardId] = cardStats;
     await saveStats(deckFolderPath, cache);
   }
 
@@ -94,12 +94,12 @@ class StatsService {
     final stats = <String, CardStats>{};
     final lines = content.split('\n');
 
-    String? currentTitle;
+    String? currentId;
     final currentFields = <String, String>{};
 
     void flush() {
-      if (currentTitle != null) {
-        stats[currentTitle] = _buildCardStats(currentTitle, currentFields);
+      if (currentId != null) {
+        stats[currentId!] = _buildCardStats(currentId!, currentFields);
         currentFields.clear();
       }
     }
@@ -109,14 +109,14 @@ class StatsService {
 
       if (!line.startsWith(' ') && !line.startsWith('\t')) {
         flush();
-        var title = line.trim();
-        if (title.endsWith(':')) {
-          title = title.substring(0, title.length - 1).trim();
+        var id = line.trim();
+        if (id.endsWith(':')) {
+          id = id.substring(0, id.length - 1).trim();
         }
-        if (title.startsWith('"') && title.endsWith('"')) {
-          title = title.substring(1, title.length - 1).replaceAll(r'\"', '"');
+        if (id.startsWith('"') && id.endsWith('"')) {
+          id = id.substring(1, id.length - 1).replaceAll(r'\"', '"');
         }
-        currentTitle = title;
+        currentId = id;
       } else {
         final trimmed = line.trim();
         final colonIdx = trimmed.indexOf(':');
@@ -132,14 +132,14 @@ class StatsService {
     return stats;
   }
 
-  CardStats _buildCardStats(String title, Map<String, String> fields) {
+  CardStats _buildCardStats(String id, Map<String, String> fields) {
     DateTime? parseDate(String? s) {
       if (s == null || s == 'null') return null;
       return DateTime.tryParse(s.replaceAll('"', ''));
     }
 
     return CardStats(
-      cardTitle: title,
+      cardId: id,
       again: int.tryParse(fields['again'] ?? '') ?? 0,
       hard: int.tryParse(fields['hard'] ?? '') ?? 0,
       good: int.tryParse(fields['good'] ?? '') ?? 0,
@@ -152,9 +152,9 @@ class StatsService {
   String _buildStatsYaml(Map<String, CardStats> stats) {
     final buf = StringBuffer();
     for (final entry in stats.entries) {
-      final title = entry.key.replaceAll('"', r'\"');
+      final id = entry.key.replaceAll('"', r'\"');
       final s = entry.value;
-      buf.writeln('"$title":');
+      buf.writeln('"$id":')
       buf.writeln('  again: ${s.again}');
       buf.writeln('  hard: ${s.hard}');
       buf.writeln('  good: ${s.good}');
@@ -192,7 +192,7 @@ class StatsService {
 
     final weights = List<double>.generate(entries.length, (i) {
       if (i == exclude) return 0.0;
-      final stats = cache[entries[i].card.title];
+      final stats = cache[entries[i].card.id];
       if (stats == null) return weightedRepetitionWeights['never_seen']!;
       // Determine last rating from whichever counter is most recent.
       // We approximate "last rating" from the counters: whichever was

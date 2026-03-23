@@ -50,7 +50,7 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
         mode: 'Normal',
         entries: [
           CardEntry(
-            card: const CardModel(title: '', frontQuestion: ''),
+            card: const CardModel(id: '', title: '', frontQuestion: ''),
           ),
         ],
         statsCache: {},
@@ -74,7 +74,7 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
 
   void _addNewCard() {
     final entry = CardEntry(
-      card: const CardModel(title: '', frontQuestion: ''),
+      card: const CardModel(id: '', title: '', frontQuestion: ''),
     );
     setState(() {
       _session ??= DeckSession(
