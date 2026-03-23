@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_selector/file_selector.dart';
+import '../../backend/app_theme.dart';
 import '../../backend/deck_service.dart';
 import '../../backend/deck_session.dart';
 import '../../backend/card_entry.dart';
@@ -24,6 +25,7 @@ enum _FileMenuAction {
   saveDeckAs,
   showHelp,
   showAiPrompt,
+  toggleDarkMode,
   showAbout,
   quit,
 }
@@ -255,6 +257,10 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         );
       case _FileMenuAction.showAbout:
         showAboutAppDialog(context);
+      case _FileMenuAction.toggleDarkMode:
+        appThemeMode.value = appThemeMode.value == ThemeMode.dark
+            ? ThemeMode.light
+            : ThemeMode.dark;
       case _FileMenuAction.quit:
         exit(0);
     }
@@ -641,45 +647,51 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                   icon: const Icon(Icons.menu),
                   tooltip: 'File',
                   onSelected: _onFileMenuSelected,
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(
                       value: _FileMenuAction.openDeck,
                       child: Text('Open deck'),
                     ),
-                    PopupMenuItem(
+                    const PopupMenuItem(
                       value: _FileMenuAction.newDeck,
                       child: Text('New deck'),
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
                       value: _FileMenuAction.importDeck,
                       child: Text('Import deck'),
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
                       value: _FileMenuAction.saveDeck,
                       child: Text('Save deck'),
                     ),
-                    PopupMenuItem(
+                    const PopupMenuItem(
                       value: _FileMenuAction.saveDeckAs,
                       child: Text('Save deck as'),
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
                       value: _FileMenuAction.showHelp,
                       child: Text('Help'),
                     ),
-                    PopupMenuItem(
+                    const PopupMenuItem(
                       value: _FileMenuAction.showAiPrompt,
                       child: Text('Generate prompt for AI deck creation'),
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
+                    const PopupMenuDivider(),
+                    CheckedPopupMenuItem(
+                      value: _FileMenuAction.toggleDarkMode,
+                      checked: appThemeMode.value == ThemeMode.dark,
+                      child: const Text('Dark mode'),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
                       value: _FileMenuAction.showAbout,
                       child: Text('About'),
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
                       value: _FileMenuAction.quit,
                       child: Text('Quit'),
                     ),
@@ -783,7 +795,10 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                         : Theme.of(context).colorScheme.primary,
                   ),
                   tooltip: 'Type answer mode',
-                  onSelected: (mode) => setState(() => _typeAnswerMode = mode),
+                  onSelected: (mode) => setState(() {
+                    _typeAnswerMode = mode;
+                    if (mode != TypeAnswerMode.off) _showOptions = false;
+                  }),
                   itemBuilder: (_) => const [
                     PopupMenuItem(
                       value: TypeAnswerMode.off,

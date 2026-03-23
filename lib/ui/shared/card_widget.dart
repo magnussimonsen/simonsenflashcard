@@ -261,22 +261,16 @@ class _CardContentState extends State<_CardContent> {
         ? '${widget.deckFolderPath}/assets/images/$activeImageFile'
         : null;
 
-    // Proportional flex layout — zones are always the same size regardless
-    // of which side is showing, so nothing jumps when flipping.
-    //
-    // Flex weights (only zones that exist for this card are included):
-    //   image   → 5
-    //   text    → 3
-    //   ipa     → 1
-    //   audio   → 1
-    //   options → 2
+    // Layout: image expands to fill all available space; text/IPA/audio/options
+    // use their natural height, stacked below the image.
+    // When there is no image, content is centred vertically in the card.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // ── Image zone ───────────────────────────────────────────────────
+        // ── Image zone — expands to fill remaining space ─────────────────
         if (hasImageSlot)
           Expanded(
-            flex: 5,
             child: Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: imagePath != null
@@ -289,13 +283,13 @@ class _CardContentState extends State<_CardContent> {
                             const Icon(Icons.broken_image, size: 64),
                       ),
                     )
-                  : const SizedBox.expand(),
+                  : const SizedBox.shrink(),
             ),
           ),
 
-        // ── Main text zone ───────────────────────────────────────────────
-        Expanded(
-          flex: 3,
+        // ── Main text zone — natural height ─────────────────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Center(
             child: Text(
               mainText,
@@ -310,101 +304,88 @@ class _CardContentState extends State<_CardContent> {
           ),
         ),
 
-        // ── LaTeX zone ───────────────────────────────────────────────────
-        if (hasLatexSlot)
-          Expanded(
-            flex: 3,
+        // ── LaTeX zone — natural height ──────────────────────────────────
+        if (hasLatexSlot && latexText.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
             child: Center(
-              child: latexText.isNotEmpty
-                  ? SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Math.tex(
-                        latexText,
-                        textStyle: const TextStyle(fontSize: 22),
-                        onErrorFallback: (e) => Text(
-                          latexText,
-                          style: TextStyle(color: Colors.red[400]),
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Math.tex(
+                  latexText,
+                  textStyle: const TextStyle(fontSize: 22),
+                  onErrorFallback: (e) =>
+                      Text(latexText, style: TextStyle(color: Colors.red[400])),
+                ),
+              ),
             ),
           ),
 
-        // ── IPA zone ─────────────────────────────────────────────────────
-        if (hasIpaSlot)
-          Expanded(
-            flex: 2,
+        // ── IPA zone — natural height ────────────────────────────────────
+        if (hasIpaSlot && ipaText.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
             child: Center(
-              child: ipaText.isNotEmpty
-                  ? Text(
-                      ipaText,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.grey[600],
-                        fontStyle: FontStyle.italic,
-                      ),
-                      textAlign: TextAlign.center,
-                    )
-                  : const SizedBox.shrink(),
+              child: Text(
+                ipaText,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
 
-        // ── Audio zone ───────────────────────────────────────────────────
+        // ── Audio zone — icon button height ─────────────────────────────
         if (hasAudioSlot)
-          Expanded(
-            flex: 2,
-            child: Center(
-              child: activeAudio != null
-                  ? IconButton(
-                      icon: Icon(
-                        _isPlaying ? Icons.volume_up : Icons.volume_up_outlined,
-                        color: _isPlaying
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.onSurface,
-                      ),
-                      tooltip: _isPlaying ? 'Stop audio' : 'Play audio',
-                      onPressed: () => _playAudio(
-                        '${widget.deckFolderPath}/assets/audio/$activeAudio',
-                      ),
-                    )
-                  : Tooltip(
-                      message: 'No audio available',
-                      child: Icon(Icons.volume_off, color: Colors.grey[300]),
+          Center(
+            child: activeAudio != null
+                ? IconButton(
+                    icon: Icon(
+                      _isPlaying ? Icons.volume_up : Icons.volume_up_outlined,
+                      color: _isPlaying
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurface,
                     ),
-            ),
-          ),
-
-        // ── Options zone (question side only) ───────────────────────────
-        if (hasOptionsSlot)
-          Expanded(
-            flex: 1,
-            child: (!isFlipped && widget.showOptions)
-                ? Center(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        for (final opt in activeOptions)
-                          Chip(
-                            label: Text(
-                              opt,
-                              style: TextStyle(color: Colors.grey[700]),
-                            ),
-                            backgroundColor: Colors.grey[100],
-                          ),
-                      ],
+                    tooltip: _isPlaying ? 'Stop audio' : 'Play audio',
+                    onPressed: () => _playAudio(
+                      '${widget.deckFolderPath}/assets/audio/$activeAudio',
                     ),
                   )
-                : const SizedBox.expand(),
+                : Tooltip(
+                    message: 'No audio available',
+                    child: Icon(Icons.volume_off, color: Colors.grey[300]),
+                  ),
           ),
 
-        // ── Type-answer zone ─────────────────────────────────────────────
-        // Reserved whenever type-answer mode is on so the layout is stable.
-        // Front: input field with optional hint.  Back: shows what was typed.
+        // ── Options zone (question side only) — natural height ───────────
+        if (hasOptionsSlot && !isFlipped && widget.showOptions)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Center(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                alignment: WrapAlignment.center,
+                children: [
+                  for (final opt in activeOptions)
+                    Chip(
+                      label: Text(
+                        opt,
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                      backgroundColor: Colors.grey[100],
+                    ),
+                ],
+              ),
+            ),
+          ),
+
+        // ── Type-answer zone — reserved height when active ───────────────
         if (hasTypeAnswerSlot)
-          Expanded(
-            flex: 2,
+          SizedBox(
+            height: 72,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: !isFlipped
@@ -425,7 +406,7 @@ class _CardContentState extends State<_CardContent> {
                       ),
                     )
                   : _typeAnswerController.text.isEmpty
-                  ? const SizedBox.expand()
+                  ? const SizedBox.shrink()
                   : Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

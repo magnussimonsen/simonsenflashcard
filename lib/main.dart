@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'backend/app_theme.dart';
 import 'backend/constants.dart';
 import 'backend/deck_service.dart';
 import 'backend/deck_session.dart';
@@ -18,12 +19,22 @@ class SimonsenFlashcardApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Simonsen Flashcard',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: appThemeMode,
+      builder: (_, mode, _) => MaterialApp(
+        title: 'Simonsen Flashcard',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        ),
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.indigo,
+            brightness: Brightness.dark,
+          ),
+        ),
+        themeMode: mode,
+        home: const _StartupScreen(),
       ),
-      home: const _StartupScreen(),
     );
   }
 }

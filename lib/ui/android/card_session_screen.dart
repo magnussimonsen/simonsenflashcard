@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:file_selector/file_selector.dart';
+import '../../backend/app_theme.dart';
 import '../../backend/deck_service.dart';
 import '../../backend/deck_session.dart';
 import '../../backend/card_entry.dart';
@@ -22,10 +24,19 @@ enum _FileMenuAction {
   saveDeckAs,
   showHelp,
   showAiPrompt,
+  toggleDarkMode,
   showAbout,
+  quit,
 }
 
-enum _EditMenuAction { editCard, editDeck, deleteDeck, restoreExampleDecks }
+enum _EditMenuAction {
+  addCard,
+  editCard,
+  editDeck,
+  deleteCard,
+  deleteDeck,
+  restoreExampleDecks,
+}
 
 /// Android: screen for reviewing cards in a deck session.
 class CardSessionScreen extends StatefulWidget {
@@ -213,15 +224,25 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
         );
       case _FileMenuAction.showAbout:
         showAboutAppDialog(context);
+      case _FileMenuAction.toggleDarkMode:
+        appThemeMode.value = appThemeMode.value == ThemeMode.dark
+            ? ThemeMode.light
+            : ThemeMode.dark;
+      case _FileMenuAction.quit:
+        SystemNavigator.pop();
     }
   }
 
   void _onEditMenuSelected(_EditMenuAction action) {
     switch (action) {
+      case _EditMenuAction.addCard:
+        _openEditDeck();
       case _EditMenuAction.editCard:
-        _showCardManagementSheet();
+        _openEditDeck();
       case _EditMenuAction.editDeck:
         _openEditDeck();
+      case _EditMenuAction.deleteCard:
+        _showDeleteCardConfirm();
       case _EditMenuAction.deleteDeck:
         _showDeleteDeckConfirm();
       case _EditMenuAction.restoreExampleDecks:
@@ -554,64 +575,6 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
     }
   }
 
-  void _showCardManagementSheet() {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.add),
-              title: const Text('Add new card'),
-              onTap: () async {
-                Navigator.pop(ctx);
-                if (!mounted) return;
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => DeckEditorScreen(
-                      deckFolderPath: widget.session.folderPath,
-                    ),
-                  ),
-                );
-                await _reloadSessionEntries();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Edit current card'),
-              onTap: () async {
-                Navigator.pop(ctx);
-                if (!mounted) return;
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => DeckEditorScreen(
-                      deckFolderPath: widget.session.folderPath,
-                    ),
-                  ),
-                );
-                await _reloadSessionEntries();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text(
-                'Delete current card',
-                style: TextStyle(color: Colors.red),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showDeleteCardConfirm();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _showDeleteCardConfirm() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -679,42 +642,53 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                   icon: const Icon(Icons.menu),
                   tooltip: 'File',
                   onSelected: _onFileMenuSelected,
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(
                       value: _FileMenuAction.openDeck,
                       child: Text('Open deck'),
                     ),
-                    PopupMenuItem(
+                    const PopupMenuItem(
                       value: _FileMenuAction.newDeck,
                       child: Text('New deck'),
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
                       value: _FileMenuAction.importDeck,
                       child: Text('Import deck'),
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
                       value: _FileMenuAction.saveDeck,
                       child: Text('Save deck'),
                     ),
-                    PopupMenuItem(
+                    const PopupMenuItem(
                       value: _FileMenuAction.saveDeckAs,
                       child: Text('Save deck as'),
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
                       value: _FileMenuAction.showHelp,
                       child: Text('Help'),
                     ),
-                    PopupMenuItem(
+                    const PopupMenuItem(
                       value: _FileMenuAction.showAiPrompt,
                       child: Text('Generate prompt for AI deck creation'),
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem(
+                    const PopupMenuDivider(),
+                    CheckedPopupMenuItem(
+                      value: _FileMenuAction.toggleDarkMode,
+                      checked: appThemeMode.value == ThemeMode.dark,
+                      child: const Text('Dark mode'),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
                       value: _FileMenuAction.showAbout,
                       child: Text('About'),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: _FileMenuAction.quit,
+                      child: Text('Quit'),
                     ),
                   ],
                 ),
@@ -724,12 +698,24 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                   onSelected: _onEditMenuSelected,
                   itemBuilder: (_) => [
                     const PopupMenuItem(
+                      value: _EditMenuAction.addCard,
+                      child: Text('+ Add new card'),
+                    ),
+                    const PopupMenuItem(
                       value: _EditMenuAction.editCard,
                       child: Text('Edit current card'),
                     ),
                     const PopupMenuItem(
                       value: _EditMenuAction.editDeck,
                       child: Text('Edit current deck'),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: _EditMenuAction.deleteCard,
+                      child: Text(
+                        'Delete current card',
+                        style: TextStyle(color: Colors.red),
+                      ),
                     ),
                     const PopupMenuDivider(),
                     const PopupMenuItem(
@@ -815,7 +801,10 @@ class _CardSessionScreenState extends State<CardSessionScreen> {
                         : Theme.of(context).colorScheme.primary,
                   ),
                   tooltip: 'Type answer mode',
-                  onSelected: (mode) => setState(() => _typeAnswerMode = mode),
+                  onSelected: (mode) => setState(() {
+                    _typeAnswerMode = mode;
+                    if (mode != TypeAnswerMode.off) _showOptions = false;
+                  }),
                   itemBuilder: (_) => const [
                     PopupMenuItem(
                       value: TypeAnswerMode.off,
