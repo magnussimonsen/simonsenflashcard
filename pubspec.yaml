@@ -92,6 +92,7 @@ flutter:
     - assets/decks/French numbers 0–20 Example/deck.yaml
     - assets/decks/French numbers 0–20 Example/assets/images/front/
     - assets/decks/French numbers 0–20 Example/assets/audio/back/
+    - assets/decks/Multiplicity Table 2–9/deck.yaml
     - assets/decks/Trigonometry Exact Values/deck.yaml
 
   # To add assets to your application, add an assets section, like this:
