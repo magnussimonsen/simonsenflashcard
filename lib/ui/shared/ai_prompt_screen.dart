@@ -110,7 +110,8 @@ String _buildPrompt(String deckDescription) {
       'notation, fill the LaTeX fields with raw LaTeX while keeping the normal '
       'text fields readable.\n\n$_promptSpec\n'
       'Now generate the complete deck file for the topic above.\n'
-      'Output only the raw file content. Do not use markdown code fences. Do '
+      'Output only the raw file content. A downloadable .txt file is definitely the best.'
+      'Do not use markdown code fences. Do '
       'not add commentary before or after the deck.';
 }
 
