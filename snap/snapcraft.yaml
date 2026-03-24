@@ -1,0 +1,29 @@
+name: simonsen-flashcard
+title: Simonsen Flashcard
+version: "1.0.0"
+summary: Flashcard study app with audio and math support
+description: |
+  A flashcard application for studying with support for audio playback,
+  LaTeX math rendering, and YAML-based deck management.
+base: core22
+confinement: strict
+grade: stable
+
+icon: lib/logo/logo.png
+
+apps:
+  simonsen-flashcard:
+    command: simonsen_flashcard
+    extensions: [gnome]
+    plugs:
+      - audio-playback
+      - home
+      - removable-media
+
+parts:
+  simonsen-flashcard:
+    plugin: flutter
+    source: .
+    flutter-target: lib/main.dart
+    build-snaps:
+      - flutter/latest/stable
