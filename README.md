@@ -2,8 +2,6 @@
 
 A Flutter flashcard app for Android and desktop. Designed to be simpler than Anki by offering fewer configuration options and predefined deck modes.
 
-See [PLANMODE.md](PLANMODE.md) for full design decisions, UI spec, and file format details.
-
 ## Screenshots
 
 <img src="screenshots/flash-1.png" width="500"> 
