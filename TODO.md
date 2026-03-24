@@ -1,0 +1,2 @@
+- Add a visual hint in the UI indicating whether the user is in review mode or weighted mode.
+- The "Show Options" and "Type Answer" buttons must be mutually exclusive: enabling one should automatically disable the other.
