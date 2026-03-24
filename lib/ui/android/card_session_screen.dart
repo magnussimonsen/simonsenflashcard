@@ -5,6 +5,7 @@ import '../../backend/app_theme.dart';
 import '../../backend/deck_service.dart';
 import '../../backend/deck_session.dart';
 import '../../backend/card_entry.dart';
+import '../../backend/srs_service.dart';
 import '../../backend/stats_service.dart';
 import '../../utils/path_utils.dart';
 import '../shared/card_widget.dart';
@@ -67,11 +68,34 @@ class _CardSessionScreenState extends State<CardSessionScreen>
   int _sessionEasy = 0;
   bool _showSessionStats = true;
   SessionMode _sessionMode = defaultSessionMode;
-  int? _sessionCardLimit = defaultSessionCardLimit;
-  int _sessionReviewCount = 0;
 
-  bool get _limitReached =>
-      _sessionCardLimit != null && _sessionReviewCount >= _sessionCardLimit!;
+  // ── Leitner state ─────────────────────────────────────────────────────────
+  List<CardEntry> _leitnerQueue = [];
+  int _queueIndex = 0;
+
+  bool get _leitnerDone =>
+      _sessionMode == SessionMode.leitner &&
+      _queueIndex >= _leitnerQueue.length;
+
+  void _startNextLeitnerSession() {
+    final state = widget.session.leitnerState;
+    widget.session.sessionNumber++;
+    _leitnerQueue = SrsService.cardsForSession(
+      widget.session,
+      state,
+      widget.session.sessionNumber,
+    );
+    _queueIndex = 0;
+    if (_leitnerQueue.isNotEmpty) {
+      _currentIndex = _activeEntries.indexOf(_leitnerQueue[0]);
+    }
+    _isFlipped = false;
+    SrsService.saveLeitner(
+      widget.session.folderPath,
+      state,
+      widget.session.sessionNumber,
+    );
+  }
 
   List<CardEntry> get _activeEntries => widget.session.activeEntries;
   CardEntry get _currentEntry => _activeEntries[_currentIndex];
@@ -101,14 +125,15 @@ class _CardSessionScreenState extends State<CardSessionScreen>
   }
 
   void _flip() {
-    if (!_isFlipped && !_limitReached) setState(() => _isFlipped = true);
+    if (!_isFlipped && !_leitnerDone) setState(() => _isFlipped = true);
   }
 
   Future<void> _rate(CardRating rating) async {
+    final cardId = _currentEntry.card.id;
     await _statsService.recordRatingCached(
       widget.session.statsCache,
       widget.session.folderPath,
-      _currentEntry.card.id,
+      cardId,
       rating,
     );
     if (!mounted) return;
@@ -127,15 +152,12 @@ class _CardSessionScreenState extends State<CardSessionScreen>
           _sessionEasy++;
           break;
       }
-      _sessionReviewCount++;
-      if (_sessionMode == SessionMode.weightedRepetition) {
-        _currentIndex = _activeEntries.isEmpty
-            ? 0
-            : StatsService.pickWeightedIndex(
-                _activeEntries,
-                widget.session.statsCache,
-                exclude: _currentIndex,
-              );
+      if (_sessionMode == SessionMode.leitner) {
+        SrsService.rateCard(widget.session.leitnerState, cardId, rating);
+        _queueIndex++;
+        if (_queueIndex < _leitnerQueue.length) {
+          _currentIndex = _activeEntries.indexOf(_leitnerQueue[_queueIndex]);
+        }
       } else {
         _currentIndex = _activeEntries.isEmpty
             ? 0
@@ -143,57 +165,48 @@ class _CardSessionScreenState extends State<CardSessionScreen>
       }
       _isFlipped = false;
     });
+    if (_sessionMode == SessionMode.leitner) {
+      await SrsService.saveLeitner(
+        widget.session.folderPath,
+        widget.session.leitnerState,
+        widget.session.sessionNumber,
+      );
+    }
   }
 
   Future<void> _showSrsSettings() async {
-    final result = await showDialog<(SessionMode, int?)>(
+    final result = await showDialog<SessionMode>(
       context: context,
       builder: (ctx) => SimpleDialog(
         title: const Text('Study mode'),
         children: [
           SimpleDialogOption(
-            onPressed: () => Navigator.pop(ctx, (SessionMode.review, null)),
+            onPressed: () => Navigator.pop(ctx, SessionMode.review),
             child: const Text('Review (sequential)'),
           ),
           const Divider(),
           SimpleDialogOption(
-            onPressed: () =>
-                Navigator.pop(ctx, (SessionMode.weightedRepetition, 10)),
-            child: const Text('Weighted – 10 cards'),
-          ),
-          SimpleDialogOption(
-            onPressed: () =>
-                Navigator.pop(ctx, (SessionMode.weightedRepetition, 20)),
-            child: const Text('Weighted – 20 cards'),
-          ),
-          SimpleDialogOption(
-            onPressed: () =>
-                Navigator.pop(ctx, (SessionMode.weightedRepetition, 30)),
-            child: const Text('Weighted – 30 cards'),
-          ),
-          SimpleDialogOption(
-            onPressed: () =>
-                Navigator.pop(ctx, (SessionMode.weightedRepetition, 40)),
-            child: const Text('Weighted – 40 cards'),
-          ),
-          SimpleDialogOption(
-            onPressed: () =>
-                Navigator.pop(ctx, (SessionMode.weightedRepetition, 50)),
-            child: const Text('Weighted – 50 cards'),
-          ),
-          SimpleDialogOption(
-            onPressed: () =>
-                Navigator.pop(ctx, (SessionMode.weightedRepetition, null)),
-            child: const Text('Weighted – Unlimited'),
+            onPressed: () => Navigator.pop(ctx, SessionMode.leitner),
+            child: const Text('Leitner Box (spaced repetition)'),
           ),
         ],
       ),
     );
     if (result == null || !mounted) return;
     setState(() {
-      _sessionMode = result.$1;
-      _sessionCardLimit = result.$2;
-      _sessionReviewCount = 0;
+      _sessionMode = result;
+      if (_sessionMode == SessionMode.leitner) {
+        _leitnerQueue = SrsService.cardsForSession(
+          widget.session,
+          widget.session.leitnerState,
+          widget.session.sessionNumber,
+        );
+        _queueIndex = 0;
+        if (_leitnerQueue.isNotEmpty) {
+          _currentIndex = _activeEntries.indexOf(_leitnerQueue[0]);
+        }
+        _isFlipped = false;
+      }
     });
   }
 
@@ -756,8 +769,8 @@ class _CardSessionScreenState extends State<CardSessionScreen>
                         ? Theme.of(context).colorScheme.primary
                         : null,
                   ),
-                  tooltip: _sessionMode == SessionMode.weightedRepetition
-                      ? 'Weighted repetition (tap to change)'
+                  tooltip: _sessionMode == SessionMode.leitner
+                      ? 'Leitner Box SRS (tap to change)'
                       : 'Review mode (tap to change)',
                   onPressed: _showSrsSettings,
                 ),
@@ -892,13 +905,14 @@ class _CardSessionScreenState extends State<CardSessionScreen>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (_sessionMode == SessionMode.weightedRepetition &&
-                        _sessionCardLimit != null)
+                    if (_sessionMode == SessionMode.leitner)
                       Text(
-                        '$_sessionReviewCount / $_sessionCardLimit',
+                        _leitnerQueue.isEmpty
+                            ? 'No cards due'
+                            : '${_queueIndex.clamp(0, _leitnerQueue.length)} / ${_leitnerQueue.length}',
                         style: TextStyle(
-                          color: _limitReached
-                              ? Colors.red
+                          color: _leitnerDone
+                              ? Colors.green[700]
                               : Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
@@ -907,17 +921,19 @@ class _CardSessionScreenState extends State<CardSessionScreen>
                 ),
               ),
             ),
-          if (_limitReached)
+          if (_leitnerDone)
             MaterialBanner(
-              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
               content: Text(
-                'Session limit reached ($_sessionCardLimit cards). '
-                'Tap "Continue" to keep going or change the limit in Study mode.',
+                _leitnerQueue.isEmpty
+                    ? 'No cards are due this session. Well done!'
+                    : 'Leitner session complete! '
+                          '${_leitnerQueue.length} card(s) reviewed.',
               ),
               actions: [
                 TextButton(
-                  onPressed: () => setState(() => _sessionReviewCount = 0),
-                  child: const Text('Continue'),
+                  onPressed: () => setState(_startNextLeitnerSession),
+                  child: const Text('Next session'),
                 ),
                 TextButton(
                   onPressed: _showSrsSettings,
@@ -930,7 +946,7 @@ class _CardSessionScreenState extends State<CardSessionScreen>
               card: card,
               isFlipped: _isFlipped,
               isReversed: _isReversed,
-              onTap: (_isFlipped || _limitReached) ? null : _flip,
+              onTap: (_isFlipped || _leitnerDone) ? null : _flip,
               deckFolderPath: widget.session.folderPath,
               showOptions: _showOptions,
               showImage: _showImage,
@@ -938,7 +954,7 @@ class _CardSessionScreenState extends State<CardSessionScreen>
             ),
           ),
           Visibility(
-            visible: _isFlipped && !_limitReached,
+            visible: _isFlipped && !_leitnerDone,
             maintainSize: true,
             maintainAnimation: true,
             maintainState: true,

@@ -23,29 +23,14 @@ enum SessionMode {
   /// Show all cards in their original order, cycling through them sequentially.
   review,
 
-  /// Pick cards at random using weights derived from each card's all-time last
-  /// rating.  Cards rated Again are most likely to reappear; cards rated Easy
-  /// are least likely.  Never-seen cards are always included.
-  weightedRepetition,
+  /// Spaced repetition based on the Leitner Box system.
+  /// Cards are sorted into five boxes; boxes are reviewed on a schedule so that
+  /// well-known cards appear less often and harder cards appear every session.
+  leitner,
 }
 
 /// Default session mode when creating a new deck or opening one without a saved preference.
 const SessionMode defaultSessionMode = SessionMode.review;
-
-/// Default max-cards limit for a weighted-repetition session.
-/// null means unlimited.
-const int? defaultSessionCardLimit = null;
-
-/// Repeat-probability weights for [SessionMode.weightedRepetition].
-/// The weight is proportional to how likely a card is to be picked next.
-/// Cards with higher weights are more likely to appear.
-const Map<String, double> weightedRepetitionWeights = {
-  'never_seen': 1.00,
-  'again': 0.95,
-  'hard': 0.70,
-  'good': 0.40,
-  'easy': 0.15,
-};
 
 /// Keyboard-shortcut tooltips shown on the rating buttons (desktop only).
 const String ratingTooltipAgain = 'Again [Key 1]';
@@ -60,7 +45,7 @@ const List<({String term, String definition})> keyConcepts = [
     definition:
         'There are two ways to study a deck. '
         'Review shows every card in order from top to bottom. '
-        'Weighted Repetition picks cards randomly, favouring cards you find harder.',
+        'Leitner Box uses spaced repetition to focus on cards you find harder.',
   ),
   (
     term: 'Review mode',
@@ -70,42 +55,38 @@ const List<({String term, String definition})> keyConcepts = [
         'Good for a first pass through new material or a structured linear review.',
   ),
   (
-    term: 'Weighted Repetition',
+    term: 'Leitner Box',
     definition:
-        'Cards are picked at random, but not equally — each card\'s chance of '
-        'appearing is based on its last rating. '
-        'Cards you rated Again appear most often; cards rated Easy appear least often. '
-        'Cards you have never seen are treated as the highest priority.',
-  ),
-  (
-    term: 'Session limit',
-    definition:
-        'In Weighted Repetition mode you can set a maximum number of cards per '
-        'session. When the limit is reached a banner appears and rating buttons '
-        'are disabled. Leave it empty for an unlimited session.',
+        'Cards are sorted into five boxes based on how well you know them. '
+        'Box 1 is reviewed every session; Box 2 every second session; '
+        'Box 3 every fourth; Box 4 every eighth; Box 5 every sixteenth. '
+        'Rating a card Easy moves it up one or two boxes; Again or Hard '
+        'sends it back to Box 1. Cards you know well are reviewed less and '
+        'less often until they reach Box 5.',
   ),
   (
     term: 'Again',
     definition:
         'You did not remember the card. '
-        'In Weighted Repetition this card will appear very often until you rate it higher.',
+        'In Leitner Box mode the card is moved back to Box 1 and will '
+        'appear every session until you remember it.',
   ),
   (
     term: 'Hard',
     definition:
         'You remembered, but it was difficult. '
-        'The card will appear frequently in Weighted Repetition.',
+        'In Leitner Box mode the card is moved back to Box 1.',
   ),
   (
     term: 'Good',
     definition:
         'You remembered with normal effort. '
-        'The card will appear at a moderate rate in Weighted Repetition.',
+        'In Leitner Box mode the card is promoted one box.',
   ),
   (
     term: 'Easy',
     definition:
         'You remembered instantly. '
-        'The card will appear rarely in Weighted Repetition.',
+        'In Leitner Box mode the card is promoted two boxes.',
   ),
 ];

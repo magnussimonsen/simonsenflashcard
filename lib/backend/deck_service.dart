@@ -5,6 +5,7 @@ import 'card_entry.dart';
 import 'card_model.dart';
 import 'deck_codec.dart';
 import 'deck_session.dart';
+import 'srs_service.dart';
 import 'stats_service.dart';
 import '../utils/path_utils.dart';
 
@@ -167,6 +168,13 @@ class DeckService {
       for (final card in parsed.cards)
         CardEntry(card: card, stats: effectiveStats[card.id]),
     ];
+    // Load Leitner state (deck.leitner.yaml) — returns a fresh state on first run.
+    final activeEntries = entries.where((e) => !e.isDeleted).toList();
+    final (leitnerState, sessionNumber) = await SrsService.loadLeitner(
+      deckFolderPath,
+      activeEntries,
+    );
+
     final session = DeckSession(
       folderPath: deckFolderPath,
       deckName: parsed.deckName.isNotEmpty
@@ -175,6 +183,8 @@ class DeckService {
       mode: parsed.mode,
       entries: entries,
       statsCache: effectiveStats,
+      leitnerState: leitnerState,
+      sessionNumber: sessionNumber,
     );
 
     // Persist auto-generated UUIDs immediately so they survive future loads.
