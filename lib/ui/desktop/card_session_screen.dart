@@ -31,7 +31,13 @@ enum _FileMenuAction {
   quit,
 }
 
-enum _EditMenuAction { editCard, editDeck, deleteDeck, restoreExampleDecks }
+enum _EditMenuAction {
+  editCard,
+  editDeck,
+  resetStats,
+  deleteDeck,
+  restoreExampleDecks,
+}
 
 // SessionMode is defined in constants.dart
 
@@ -154,12 +160,26 @@ class _CardSessionScreenState extends State<CardSessionScreen>
           children: [
             SimpleDialogOption(
               onPressed: () => Navigator.pop(ctx, SessionMode.review),
-              child: const Text('Review (sequential)'),
+              child: Row(
+                children: [
+                  const Text('Review (sequential)'),
+                  const Spacer(),
+                  if (_sessionMode == SessionMode.review)
+                    const Icon(Icons.check, size: 18),
+                ],
+              ),
             ),
             const Divider(),
             SimpleDialogOption(
               onPressed: () => Navigator.pop(ctx, SessionMode.leitner),
-              child: const Text('Leitner Box (spaced repetition)'),
+              child: Row(
+                children: [
+                  const Text('Leitner Box (spaced repetition)'),
+                  const Spacer(),
+                  if (_sessionMode == SessionMode.leitner)
+                    const Icon(Icons.check, size: 18),
+                ],
+              ),
             ),
           ],
         ),
@@ -272,6 +292,9 @@ class _CardSessionScreenState extends State<CardSessionScreen>
       case _EditMenuAction.editDeck:
         _openDeckEditor();
         break;
+      case _EditMenuAction.resetStats:
+        _resetDeckStats();
+        break;
       case _EditMenuAction.deleteDeck:
         _showDeleteDeckConfirm();
         break;
@@ -279,6 +302,41 @@ class _CardSessionScreenState extends State<CardSessionScreen>
         _restoreExampleDecks();
         break;
     }
+  }
+
+  Future<void> _resetDeckStats() async {
+    final confirmed = await _withKeyboardPaused(
+      () => showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Reset deck statistics?'),
+          content: const Text(
+            'All review history for this deck will be permanently deleted.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Reset'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _statsService.flushPendingWrites(
+      deckFolderPath: widget.session.folderPath,
+    );
+    final statsFile = File('${widget.session.folderPath}/deck.stats.yaml');
+    if (await statsFile.exists()) await statsFile.delete();
+    setState(() => widget.session.statsCache.clear());
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Deck statistics reset.')));
   }
 
   Future<void> _openFromList() async {
@@ -757,6 +815,11 @@ class _CardSessionScreenState extends State<CardSessionScreen>
                     const PopupMenuItem(
                       value: _EditMenuAction.restoreExampleDecks,
                       child: Text('Restore example decks'),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: _EditMenuAction.resetStats,
+                      child: Text('Reset deck statistics'),
                     ),
                     const PopupMenuDivider(),
                     PopupMenuItem(

@@ -438,6 +438,9 @@ class DeckService {
       (k) => k.startsWith(prefix),
     )) {
       final rel = key.substring(prefix.length);
+      if (rel == 'deck.stats.yaml') {
+        continue; // never overwrite user review history
+      }
       final dest = File('$destDirPath/$rel');
       await dest.parent.create(recursive: true);
       if (key.endsWith('.yaml') ||
@@ -470,9 +473,19 @@ class DeckService {
     if (await deletedFile.exists()) await deletedFile.delete();
     for (final deckName in await _shippedDeckNames()) {
       final destDir = Directory('$root/$deckName');
+      // Preserve user review history before wiping the deck folder.
+      final statsFile = File('${destDir.path}/deck.stats.yaml');
+      String? savedStats;
+      if (await statsFile.exists()) {
+        savedStats = await statsFile.readAsString();
+      }
       if (await destDir.exists()) await destDir.delete(recursive: true);
       await destDir.create(recursive: true);
       await _copyShippedDeckAssets(deckName, destDir.path);
+      // Restore user review history after re-copy.
+      if (savedStats != null) {
+        await statsFile.writeAsString(savedStats);
+      }
     }
   }
 

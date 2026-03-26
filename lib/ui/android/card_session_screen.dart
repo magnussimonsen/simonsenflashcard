@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_selector/file_selector.dart';
@@ -32,13 +33,9 @@ enum _FileMenuAction {
 
 enum _EditMenuAction {
   addCard,
-  // editCard is intentionally absent on Android: DeckEditorScreen does not
-  // support jumping to a specific card (no initialEntryIndex). Tapping
-  // "Edit current card" would open the full deck editor at card 1 every time,
-  // which is indistinguishable from "Edit current deck" — misleading UX.
-  // The desktop version supports this via DeckEditorScreen(initialEntryIndex:).
   editDeck,
   deleteCard,
+  resetStats,
   deleteDeck,
   restoreExampleDecks,
 }
@@ -268,6 +265,9 @@ class _CardSessionScreenState extends State<CardSessionScreen>
       case _EditMenuAction.deleteCard:
         _showDeleteCardConfirm();
         break;
+      case _EditMenuAction.resetStats:
+        _resetDeckStats();
+        break;
       case _EditMenuAction.deleteDeck:
         _showDeleteDeckConfirm();
         break;
@@ -315,6 +315,39 @@ class _CardSessionScreenState extends State<CardSessionScreen>
     } catch (_) {
       // Reload failed — continue with existing session data.
     }
+  }
+
+  Future<void> _resetDeckStats() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reset deck statistics?'),
+        content: const Text(
+          'All review history for this deck will be permanently deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _statsService.flushPendingWrites(
+      deckFolderPath: widget.session.folderPath,
+    );
+    final statsFile = File('${widget.session.folderPath}/deck.stats.yaml');
+    if (await statsFile.exists()) await statsFile.delete();
+    setState(() => widget.session.statsCache.clear());
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Deck statistics reset.')));
   }
 
   Future<void> _showDeleteDeckConfirm() async {
@@ -751,6 +784,11 @@ class _CardSessionScreenState extends State<CardSessionScreen>
                     const PopupMenuItem(
                       value: _EditMenuAction.restoreExampleDecks,
                       child: Text('Restore example decks'),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem(
+                      value: _EditMenuAction.resetStats,
+                      child: Text('Reset deck statistics'),
                     ),
                     const PopupMenuDivider(),
                     PopupMenuItem(
