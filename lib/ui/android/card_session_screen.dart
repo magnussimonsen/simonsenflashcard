@@ -75,23 +75,21 @@ class _CardSessionScreenState extends State<CardSessionScreen>
       _queueIndex >= _leitnerQueue.length;
 
   void _startNextLeitnerSession() {
-    final state = widget.session.leitnerState;
     widget.session.sessionNumber++;
     _leitnerQueue = SrsService.cardsForSession(
       widget.session,
-      state,
+      widget.session.leitnerState,
       widget.session.sessionNumber,
     );
     _queueIndex = 0;
     if (_leitnerQueue.isNotEmpty) {
-      _currentIndex = _activeEntries.indexOf(_leitnerQueue[0]);
+      final idx = _activeEntries.indexOf(_leitnerQueue[0]);
+      _currentIndex = idx >= 0 ? idx : 0;
+    } else {
+      _currentIndex = 0;
     }
     _isFlipped = false;
-    SrsService.saveLeitner(
-      widget.session.folderPath,
-      state,
-      widget.session.sessionNumber,
-    );
+    // saveLeitner is awaited by the button's onPressed after setState completes.
   }
 
   List<CardEntry> get _activeEntries => widget.session.activeEntries;
@@ -111,6 +109,13 @@ class _CardSessionScreenState extends State<CardSessionScreen>
       _statsService.flushPendingWrites(
         deckFolderPath: widget.session.folderPath,
       );
+      if (_sessionMode == SessionMode.leitner) {
+        SrsService.saveLeitner(
+          widget.session.folderPath,
+          widget.session.leitnerState,
+          widget.session.sessionNumber,
+        );
+      }
     }
   }
 
@@ -153,7 +158,8 @@ class _CardSessionScreenState extends State<CardSessionScreen>
         SrsService.rateCard(widget.session.leitnerState, cardId, rating);
         _queueIndex++;
         if (_queueIndex < _leitnerQueue.length) {
-          _currentIndex = _activeEntries.indexOf(_leitnerQueue[_queueIndex]);
+          final idx = _activeEntries.indexOf(_leitnerQueue[_queueIndex]);
+          _currentIndex = idx >= 0 ? idx : 0;
         }
       } else {
         _currentIndex = _activeEntries.isEmpty
@@ -163,6 +169,9 @@ class _CardSessionScreenState extends State<CardSessionScreen>
       _isFlipped = false;
     });
     if (_sessionMode == SessionMode.leitner) {
+      await _statsService.flushPendingWrites(
+        deckFolderPath: widget.session.folderPath,
+      );
       await SrsService.saveLeitner(
         widget.session.folderPath,
         widget.session.leitnerState,
@@ -200,7 +209,10 @@ class _CardSessionScreenState extends State<CardSessionScreen>
         );
         _queueIndex = 0;
         if (_leitnerQueue.isNotEmpty) {
-          _currentIndex = _activeEntries.indexOf(_leitnerQueue[0]);
+          final idx = _activeEntries.indexOf(_leitnerQueue[0]);
+          _currentIndex = idx >= 0 ? idx : 0;
+        } else {
+          _currentIndex = 0;
         }
         _isFlipped = false;
       }
@@ -305,6 +317,7 @@ class _CardSessionScreenState extends State<CardSessionScreen>
         ..clear()
         ..addAll(fresh.statsCache);
       widget.session.deckName = fresh.deckName;
+      widget.session.leitnerState = fresh.leitnerState;
       setState(() {
         if (_activeEntries.isEmpty) {
           _currentIndex = 0;
@@ -312,8 +325,8 @@ class _CardSessionScreenState extends State<CardSessionScreen>
           _currentIndex = _activeEntries.length - 1;
         }
       });
-    } catch (_) {
-      // Reload failed — continue with existing session data.
+    } catch (e) {
+      debugPrint('Failed to reload session entries: $e');
     }
   }
 
@@ -850,8 +863,10 @@ class _CardSessionScreenState extends State<CardSessionScreen>
                           : Icons.list_alt,
                     ),
                     tooltip: _showOptions ? 'Hide options' : 'Show options',
-                    onPressed: () =>
-                        setState(() => _showOptions = !_showOptions),
+                    onPressed: () => setState(() {
+                      _showOptions = !_showOptions;
+                      if (_showOptions) _typeAnswerMode = TypeAnswerMode.off;
+                    }),
                   ),
                 if (hasImage)
                   IconButton(
@@ -970,7 +985,14 @@ class _CardSessionScreenState extends State<CardSessionScreen>
               ),
               actions: [
                 TextButton(
-                  onPressed: () => setState(_startNextLeitnerSession),
+                  onPressed: () async {
+                    setState(_startNextLeitnerSession);
+                    await SrsService.saveLeitner(
+                      widget.session.folderPath,
+                      widget.session.leitnerState,
+                      widget.session.sessionNumber,
+                    );
+                  },
                   child: const Text('Next session'),
                 ),
                 TextButton(
