@@ -430,13 +430,6 @@ class _EditCardWidgetState extends State<EditCardWidget> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (widget.onCancel != null) ...[
-                    TextButton(
-                      onPressed: _tryCancel,
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
                   FilledButton.icon(
                     onPressed: _save,
                     icon: const Icon(Icons.save),
