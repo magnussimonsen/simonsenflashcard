@@ -23,16 +23,19 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
   bool _unsavedChanges = false;
   late final TextEditingController _deckNameCtrl;
 
+  void _onDeckNameChanged() => setState(() => _unsavedChanges = true);
+
   @override
   void initState() {
     super.initState();
     _deckNameCtrl = TextEditingController();
-    _deckNameCtrl.addListener(() => setState(() => _unsavedChanges = true));
+    _deckNameCtrl.addListener(_onDeckNameChanged);
     _loadSession();
   }
 
   @override
   void dispose() {
+    _deckNameCtrl.removeListener(_onDeckNameChanged);
     _deckNameCtrl.dispose();
     super.dispose();
   }
@@ -43,11 +46,15 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
       try {
         final session = await _deckService.loadSession(path);
         if (!mounted) return;
+        // Remove listener before setting text so loading the existing name
+        // doesn't falsely mark the deck as having unsaved changes.
+        _deckNameCtrl.removeListener(_onDeckNameChanged);
         setState(() {
           _session = session;
           _deckNameCtrl.text = session.deckName;
           _loading = false;
         });
+        _deckNameCtrl.addListener(_onDeckNameChanged);
       } catch (e) {
         if (!mounted) return;
         setState(() => _loading = false);
@@ -81,8 +88,21 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
     if (session == null) return;
     final name = _deckNameCtrl.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a deck name.')),
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('No deck name'),
+          content: const Text(
+            'The deck cannot be saved because it has no name.\n'
+            'Please enter a name in the title bar first.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
       return;
     }

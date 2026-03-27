@@ -139,56 +139,47 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
   Future<void> _saveDeck() async {
     final name = _deckNameCtrl.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a deck name.')),
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('No deck name'),
+          content: const Text(
+            'The deck cannot be saved because it has no name.\n'
+            'Please enter a name in the title bar first.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
       return;
     }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Save deck?'),
-        content: Text(
-          _session == null || _session!.folderPath.isEmpty
-              ? 'Create deck "$name"?'
-              : 'Overwrite "$name"?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-
     try {
       if (_session == null || _session!.folderPath.isEmpty) {
-        // New deck — create on disk.
+        // New deck — create on disk, then copy any in-memory cards.
         final newSession = await _deckService.createNewDeck(name);
-        // Add any cards the user already added in memory.
         if (_session != null) {
           for (final e in _session!.entries) {
             newSession.entries.add(e);
           }
         }
+        await _deckService.saveDeck(newSession);
+        // Only update state after both operations succeed.
+        if (!mounted) return;
         setState(() {
           _session = newSession;
           _unsavedChanges = false;
         });
-        await _deckService.saveDeck(newSession);
       } else {
         _session!.deckName = name;
         await _deckService.saveDeck(_session!);
+        if (!mounted) return;
         setState(() => _unsavedChanges = false);
       }
-      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('"$name" saved')));
@@ -207,11 +198,28 @@ class _DeckEditorScreenState extends State<DeckEditorScreen> {
 
   Future<bool> _onWillPop() async {
     if (!_unsavedChanges) return true;
+
+    final isNewDeck = _session == null || _session!.folderPath.isEmpty;
+    final nameIsEmpty = _deckNameCtrl.text.trim().isEmpty;
+
+    final String title;
+    final String content;
+    if (isNewDeck && nameIsEmpty) {
+      title = 'Deck not saved';
+      content = 'This deck has no name and has never been saved. Go back and discard it?';
+    } else if (isNewDeck) {
+      title = 'Deck not saved';
+      content = 'This deck has never been saved to disk. Discard it?';
+    } else {
+      title = 'Unsaved changes';
+      content = 'You have unsaved changes. Discard them?';
+    }
+
     final discard = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Discard changes?'),
-        content: const Text('You have unsaved changes. Discard them?'),
+        title: Text(title),
+        content: Text(content),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
