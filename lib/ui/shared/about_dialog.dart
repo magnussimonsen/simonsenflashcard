@@ -12,7 +12,7 @@ void showAboutAppDialog(BuildContext context) {
     applicationName: 'Simonsen Flashcard',
     applicationVersion: '1.0.0',
     applicationIcon: Image.asset(
-      'lib/logo/logo.png',
+      'lib/logo/logo-new.png',
       width: 48,
       height: 48,
       filterQuality: FilterQuality.high,

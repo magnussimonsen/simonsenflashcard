@@ -55,20 +55,20 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.3
 
 flutter_launcher_icons:
-  image_path: "lib/logo/logo.png"
+  image_path: "lib/logo/logo-new.png"
   android: true
   adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "lib/logo/logo_adaptive_fg.png"
   ios: true
   web:
     generate: true
-    image_path: "lib/logo/logo.png"
+    image_path: "lib/logo/logo-new.png"
   windows:
     generate: true
-    image_path: "lib/logo/logo.png"
+    image_path: "lib/logo/logo-new.png"
   macos:
     generate: true
-    image_path: "lib/logo/logo.png"
+    image_path: "lib/logo/logo-new.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -82,7 +82,7 @@ flutter:
 
   assets:
     # ── App logo (used in UI/About dialog, etc.) ────────────────────────────
-    - lib/logo/logo.png
+    - lib/logo/logo-new.png
 
     # ── Shipped example decks ────────────────────────────────────────────────
     # To ship a new deck: add its folder under assets/decks/ then list its

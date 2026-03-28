@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'lib/logo/logo.png',
+              'lib/logo/logo-new.png',
               width: 96,
               height: 96,
               filterQuality: FilterQuality.high,
