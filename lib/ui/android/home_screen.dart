@@ -130,6 +130,13 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Image.asset(
+              'lib/logo/logo.png',
+              width: 96,
+              height: 96,
+              filterQuality: FilterQuality.high,
+            ),
+            const SizedBox(height: 16),
             TextButton.icon(
               icon: const Icon(Icons.help_outline),
               label: const Text('Help'),
