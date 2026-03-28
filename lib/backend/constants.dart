@@ -89,4 +89,15 @@ const List<({String term, String definition})> keyConcepts = [
         'You remembered instantly. '
         'In Leitner Box mode the card is promoted two boxes.',
   ),
+  (
+    term: 'Type answer mode',
+    definition:
+        'When type answer mode is on, you type your answer before flipping the card. '
+        'The app compares what you typed against the card\'s answer field in deck.yaml — '
+        'not against the LaTeX or any other field. '
+        'For example, if the front LaTeX shows "2 · 3" and the answer field says "6", '
+        'you must type "6". '
+        'In back-to-front (reversed) mode the roles swap: the app checks your input '
+        'against the question field instead.',
+  ),
 ];
