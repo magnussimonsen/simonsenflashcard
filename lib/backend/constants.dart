@@ -93,7 +93,7 @@ const List<({String term, String definition})> keyConcepts = [
     term: 'Type answer mode',
     definition:
         'When type answer mode is on, you type your answer before flipping the card. '
-        'The app compares what you typed against the card\'s answer field in deck.yaml — '
+        'The app compares what you typed against the card\'s answer field in deck.yaml, '
         'not against the LaTeX or any other field. '
         'For example, if the front LaTeX shows "2 · 3" and the answer field says "6", '
         'you must type "6". '

@@ -111,10 +111,10 @@ class HelpScreen extends StatelessWidget {
           const Text(
             'After you flip a card in Leitner mode, you rate how well you remembered it. '
             'The rating moves the card to a different box:\n\n'
-            'Again — you did not remember. The card goes back to Box 1 and will appear every session until you get it right.\n\n'
-            'Hard — you remembered, but it was a struggle. The card also goes back to Box 1.\n\n'
-            'Good — you remembered with normal effort. The card moves up one box, so it will be reviewed less often.\n\n'
-            'Easy — you remembered instantly. The card jumps up two boxes, fast-tracking it to a less frequent review slot.',
+            'Again: you did not remember. The card goes back to Box 1 and will appear every session until you get it right.\n\n'
+            'Hard: you remembered, but it was a struggle. The card also goes back to Box 1.\n\n'
+            'Good: you remembered with normal effort. The card moves up one box, so it will be reviewed less often.\n\n'
+            'Easy: you remembered instantly. The card jumps up two boxes, fast-tracking it to a less frequent review slot.',
           ),
 
           // ── Keyboard shortcuts ────────────────────────────────────────

@@ -20,7 +20,7 @@ A Flutter flashcard app for Android and desktop. Designed to be simpler than Ank
 ## Running the app
 
 ```powershell
-# Android emulator — disable Play Protect warning (run once)
+# Android emulator: disable Play Protect warning (run once)
 adb shell settings put global package_verifier_enable 0
 adb shell settings put global verifier_verify_adb_installs 0
 
@@ -79,14 +79,14 @@ assets/
     French numbers 0–20 Example/
 ```
 
-The `backend/` layer has no Flutter UI imports. All UI screens call `backend/` services only — never the file system directly. Parsing logic lives in `deck_codec.dart`, keeping `deck_service.dart` focused on disk I/O only.
+The `backend/` layer has no Flutter UI imports. All UI screens call `backend/` services only, never the file system directly. Parsing logic lives in `deck_codec.dart`, keeping `deck_service.dart` focused on disk I/O only.
 
 ## In-memory data model
 
 Only one deck is kept in memory at a time as a `DeckSession`. Each card is stored as a `CardEntry`, which wraps the immutable `CardModel` with:
 
 - a stable integer `id`
-- an `isDeleted` flag (soft-delete — card disappears immediately but can be undone before saving)
+- an `isDeleted` flag (soft-delete: card disappears immediately but can be undone before saving)
 - a `history` stack of previous `CardModel` versions (undo support)
 - optional `CardStats` (loaded from `deck.stats.yaml`)
 
@@ -113,7 +113,7 @@ decks/
 
 `image` and `audio` fields store a relative path within `assets/images/` or `assets/audio/` respectively (e.g. `back/chien.mp3`). Omit these fields entirely when unused.
 
-**deck.yaml format — language card with IPA and multiple choice:**
+**deck.yaml format, language card with IPA and multiple choice:**
 
 ```yaml
 deckname: 'My Deck'
@@ -138,7 +138,7 @@ cards:
         - 'horse'
 ```
 
-**deck.yaml format — math card with LaTeX:**
+**deck.yaml format, math card with LaTeX:**
 
 ```yaml
 deckname: 'Algebra Basics'
@@ -213,7 +213,7 @@ Rating a card **Again** or **Hard** sends it back to Box 1. **Good** promotes it
 
 ## Review statistics
 
-Every rating is recorded to `deck.stats.yaml` regardless of study mode — this stores lifetime again/hard/good/easy counts and last-reviewed timestamps. Leitner Box scheduling uses its own separate `deck.leitner.yaml` file and does not depend on these stats.
+Every rating is recorded to `deck.stats.yaml` regardless of study mode. This stores lifetime again/hard/good/easy counts and last-reviewed timestamps. Leitner Box scheduling uses its own separate `deck.leitner.yaml` file and does not depend on these stats.
 
 ## Architecture note
 
