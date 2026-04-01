@@ -9,6 +9,7 @@ A Flutter flashcard app for Android and desktop. Designed to be simpler than Ank
 <img src="screenshots/flash-3.png" width="500"> 
 <img src="screenshots/flash-4.png" width="500">
 <img src="screenshots/flash-5.png" width="500">
+<img src="screenshots/flash-6.png" width="500">
 
 ## Tech stack
 

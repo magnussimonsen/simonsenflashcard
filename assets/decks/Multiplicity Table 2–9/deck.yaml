@@ -4,512 +4,512 @@ cards:
   - id: 'e519d644-864f-41a4-9039-bf0aeb995ad2'
     title: '2*2'
     front:
-      question: 'Calculate'
+      question: 
       latex: '2 \cdot 2'
     back:
-      answer: 'Result'
+      answer: 
       latex: '4'
   - id: '6fb9eddb-fb99-4966-a10e-c8a985886145'
     title: '2*3'
     front:
-      question: 'Calculate'
+      question: 
       latex: '2 \cdot 3'
     back:
-      answer: 'Result'
+      answer: 
       latex: '6'
   - id: '287f8b64-4bba-49ef-b5a0-331a65d4726f'
     title: '2*4'
     front:
-      question: 'Calculate'
+      question: 
       latex: '2 \cdot 4'
     back:
-      answer: 'Result'
+      answer: 
       latex: '8'
   - id: '9d5a33bc-19af-4511-936b-677083d4bfee'
     title: '2*5'
     front:
-      question: 'Calculate'
+      question: 
       latex: '2 \cdot 5'
     back:
-      answer: 'Result'
+      answer: 
       latex: '10'
   - id: 'd6487823-67d9-45be-b2fc-e51f4e8feb2b'
     title: '2*6'
     front:
-      question: 'Calculate'
+      question: 
       latex: '2 \cdot 6'
     back:
-      answer: 'Result'
+      answer: 
       latex: '12'
   - id: '19b7fc73-41bb-4c0e-9b81-36790301ad4e'
     title: '2*7'
     front:
-      question: 'Calculate'
+      question: 
       latex: '2 \cdot 7'
     back:
-      answer: 'Result'
+      answer: 
       latex: '14'
   - id: '0588a2ef-ce2a-4126-98cf-ea3c4914be96'
     title: '2*8'
     front:
-      question: 'Calculate'
+      question: 
       latex: '2 \cdot 8'
     back:
-      answer: 'Result'
+      answer: 
       latex: '16'
   - id: '2af859b8-2c20-4d6f-bb5c-8249eb1a040d'
     title: '2*9'
     front:
-      question: 'Calculate'
+      question: 
       latex: '2 \cdot 9'
     back:
-      answer: 'Result'
+      answer: 
       latex: '18'
   - id: 'af98a226-b41d-43ac-85f7-a961b85484d2'
     title: '3*2'
     front:
-      question: 'Calculate'
+      question: 
       latex: '3 \cdot 2'
     back:
-      answer: 'Result'
+      answer: 
       latex: '6'
   - id: '841918e1-d08e-49b9-a2e1-91feb8a41142'
     title: '3*3'
     front:
-      question: 'Calculate'
+      question: 
       latex: '3 \cdot 3'
     back:
-      answer: 'Result'
+      answer: 
       latex: '9'
   - id: '0c336893-30b6-45b1-bda6-d6032fa149d8'
     title: '3*4'
     front:
-      question: 'Calculate'
+      question: 
       latex: '3 \cdot 4'
     back:
-      answer: 'Result'
+      answer: 
       latex: '12'
   - id: '892efabd-ce0e-4697-a75d-06c4fccab272'
     title: '3*5'
     front:
-      question: 'Calculate'
+      question: 
       latex: '3 \cdot 5'
     back:
-      answer: 'Result'
+      answer: 
       latex: '15'
   - id: '3ac712dd-bc02-4c22-9fb5-f10e7bf06670'
     title: '3*6'
     front:
-      question: 'Calculate'
+      question: 
       latex: '3 \cdot 6'
     back:
-      answer: 'Result'
+      answer: 
       latex: '18'
   - id: '2179cbbe-1e8f-4c3d-b711-6f3b929e142b'
     title: '3*7'
     front:
-      question: 'Calculate'
+      question: 
       latex: '3 \cdot 7'
     back:
-      answer: 'Result'
+      answer: 
       latex: '21'
   - id: '7d69fff0-e64e-45fc-b061-cda1503226eb'
     title: '3*8'
     front:
-      question: 'Calculate'
+      question: 
       latex: '3 \cdot 8'
     back:
-      answer: 'Result'
+      answer: 
       latex: '24'
   - id: '52346ee4-2ca0-4aef-95af-78d5d677f57b'
     title: '3*9'
     front:
-      question: 'Calculate'
+      question: 
       latex: '3 \cdot 9'
     back:
-      answer: 'Result'
+      answer: 
       latex: '27'
   - id: 'bf2d2299-5a5a-4503-b1d8-c533c8b17505'
     title: '4*2'
     front:
-      question: 'Calculate'
+      question: 
       latex: '4 \cdot 2'
     back:
-      answer: 'Result'
+      answer: 
       latex: '8'
   - id: '45820b89-943c-45c8-aa81-f87f855ff8ff'
     title: '4*3'
     front:
-      question: 'Calculate'
+      question: 
       latex: '4 \cdot 3'
     back:
-      answer: 'Result'
+      answer: 
       latex: '12'
   - id: '147f673b-a3bd-41c2-9584-168db962b684'
     title: '4*4'
     front:
-      question: 'Calculate'
+      question: 
       latex: '4 \cdot 4'
     back:
-      answer: 'Result'
+      answer: 
       latex: '16'
   - id: '30ffd438-81de-4c41-9f4a-be021b9dbcf9'
     title: '4*5'
     front:
-      question: 'Calculate'
+      question: 
       latex: '4 \cdot 5'
     back:
-      answer: 'Result'
+      answer: 
       latex: '20'
   - id: '8474400d-d2bc-4086-b5f6-dc64c9d1ec4b'
     title: '4*6'
     front:
-      question: 'Calculate'
+      question: 
       latex: '4 \cdot 6'
     back:
-      answer: 'Result'
+      answer: 
       latex: '24'
   - id: 'fb042016-80cd-423d-a97c-8fe5080b2947'
     title: '4*7'
     front:
-      question: 'Calculate'
+      question: 
       latex: '4 \cdot 7'
     back:
-      answer: 'Result'
+      answer: 
       latex: '28'
   - id: '25122689-70cc-4a12-85c5-cc52bd092168'
     title: '4*8'
     front:
-      question: 'Calculate'
+      question: 
       latex: '4 \cdot 8'
     back:
-      answer: 'Result'
+      answer: 
       latex: '32'
   - id: 'aec90432-8df9-4c62-a04b-1e63a009a4ff'
     title: '4*9'
     front:
-      question: 'Calculate'
+      question: 
       latex: '4 \cdot 9'
     back:
-      answer: 'Result'
+      answer: 
       latex: '36'
   - id: 'd0557510-ac2f-4b71-a794-ef194a15229e'
     title: '5*2'
     front:
-      question: 'Calculate'
+      question: 
       latex: '5 \cdot 2'
     back:
-      answer: 'Result'
+      answer: 
       latex: '10'
   - id: '52e928c6-db40-4e4e-a3ed-9aac741d89c4'
     title: '5*3'
     front:
-      question: 'Calculate'
+      question: 
       latex: '5 \cdot 3'
     back:
-      answer: 'Result'
+      answer: 
       latex: '15'
   - id: 'de54af77-46d1-4388-aa28-96b50890fe8f'
     title: '5*4'
     front:
-      question: 'Calculate'
+      question: 
       latex: '5 \cdot 4'
     back:
-      answer: 'Result'
+      answer: 
       latex: '20'
   - id: '871946a0-5a4d-483c-b498-98b275c763d6'
     title: '5*5'
     front:
-      question: 'Calculate'
+      question: 
       latex: '5 \cdot 5'
     back:
-      answer: 'Result'
+      answer: 
       latex: '25'
   - id: '462cafab-71ed-417d-ae55-7ec725016bea'
     title: '5*6'
     front:
-      question: 'Calculate'
+      question: 
       latex: '5 \cdot 6'
     back:
-      answer: 'Result'
+      answer: 
       latex: '30'
   - id: '45a3e7b4-e4c3-47ce-84e3-6c8fc5e80d83'
     title: '5*7'
     front:
-      question: 'Calculate'
+      question: 
       latex: '5 \cdot 7'
     back:
-      answer: 'Result'
+      answer: 
       latex: '35'
   - id: '171e9574-b53e-4028-8060-830f87ac02e0'
     title: '5*8'
     front:
-      question: 'Calculate'
+      question: 
       latex: '5 \cdot 8'
     back:
-      answer: 'Result'
+      answer: 
       latex: '40'
   - id: '473a7d25-df7e-45c1-bbc2-cff7272fe54f'
     title: '5*9'
     front:
-      question: 'Calculate'
+      question: 
       latex: '5 \cdot 9'
     back:
-      answer: 'Result'
+      answer: 
       latex: '45'
   - id: '092163d0-35aa-435d-ae91-5351b53a0746'
     title: '6*2'
     front:
-      question: 'Calculate'
+      question: 
       latex: '6 \cdot 2'
     back:
-      answer: 'Result'
+      answer: 
       latex: '12'
   - id: '12d04c84-1a38-492f-b526-6f77af934129'
     title: '6*3'
     front:
-      question: 'Calculate'
+      question: 
       latex: '6 \cdot 3'
     back:
-      answer: 'Result'
+      answer: 
       latex: '18'
   - id: 'ca2fd2c6-d175-4b38-bf09-b74f54705a6b'
     title: '6*4'
     front:
-      question: 'Calculate'
+      question: 
       latex: '6 \cdot 4'
     back:
-      answer: 'Result'
+      answer: 
       latex: '24'
   - id: 'ef849e2d-ee71-4a6a-bccb-1ee562318cd6'
     title: '6*5'
     front:
-      question: 'Calculate'
+      question: 
       latex: '6 \cdot 5'
     back:
-      answer: 'Result'
+      answer: 
       latex: '30'
   - id: '4fac4f5f-3527-4f7e-b260-3c7c954e3d00'
     title: '6*6'
     front:
-      question: 'Calculate'
+      question: 
       latex: '6 \cdot 6'
     back:
-      answer: 'Result'
+      answer: 
       latex: '36'
   - id: 'ccff0eb7-0447-4ec3-96e9-59c33b023550'
     title: '6*7'
     front:
-      question: 'Calculate'
+      question: 
       latex: '6 \cdot 7'
     back:
-      answer: 'Result'
+      answer: 
       latex: '42'
   - id: '4f1d2a20-b1ed-4c4d-9c0a-d505244a6a2f'
     title: '6*8'
     front:
-      question: 'Calculate'
+      question: 
       latex: '6 \cdot 8'
     back:
-      answer: 'Result'
+      answer: 
       latex: '48'
   - id: '3fc139f6-71f7-4ea7-90ac-48c5a363fdd9'
     title: '6*9'
     front:
-      question: 'Calculate'
+      question: 
       latex: '6 \cdot 9'
     back:
-      answer: 'Result'
+      answer: 
       latex: '54'
   - id: '5994b140-3526-4065-8b3f-d0541ca921a0'
     title: '7*2'
     front:
-      question: 'Calculate'
+      question: 
       latex: '7 \cdot 2'
     back:
-      answer: 'Result'
+      answer: 
       latex: '14'
   - id: '2c54a257-4322-4dc2-9929-bf5dce082015'
     title: '7*3'
     front:
-      question: 'Calculate'
+      question: 
       latex: '7 \cdot 3'
     back:
-      answer: 'Result'
+      answer: 
       latex: '21'
   - id: '8c35c0b4-320c-42bc-8f90-9990fbf10e9b'
     title: '7*4'
     front:
-      question: 'Calculate'
+      question: 
       latex: '7 \cdot 4'
     back:
-      answer: 'Result'
+      answer: 
       latex: '28'
   - id: '3c8045ec-15da-4096-b12f-d371eb538947'
     title: '7*5'
     front:
-      question: 'Calculate'
+      question: 
       latex: '7 \cdot 5'
     back:
-      answer: 'Result'
+      answer: 
       latex: '35'
   - id: '40e4cdc9-b1fe-4ead-9205-98762aba88d2'
     title: '7*6'
     front:
-      question: 'Calculate'
+      question: 
       latex: '7 \cdot 6'
     back:
-      answer: 'Result'
+      answer: 
       latex: '42'
   - id: '300ee8a9-dd12-4a85-a745-1dc78b1e3941'
     title: '7*7'
     front:
-      question: 'Calculate'
+      question: 
       latex: '7 \cdot 7'
     back:
-      answer: 'Result'
+      answer: 
       latex: '49'
   - id: 'b082825c-3959-4694-8cd7-9a1ee299dc20'
     title: '7*8'
     front:
-      question: 'Calculate'
+      question: 
       latex: '7 \cdot 8'
     back:
-      answer: 'Result'
+      answer: 
       latex: '56'
   - id: '5a7d85c3-8bdd-4fba-bcea-18bc760fb9f5'
     title: '7*9'
     front:
-      question: 'Calculate'
+      question: 
       latex: '7 \cdot 9'
     back:
-      answer: 'Result'
+      answer: 
       latex: '63'
   - id: 'c8e79791-dfa6-4e74-ae48-b1fb960caff8'
     title: '8*2'
     front:
-      question: 'Calculate'
+      question: 
       latex: '8 \cdot 2'
     back:
-      answer: 'Result'
+      answer: 
       latex: '16'
   - id: 'bd7b9b16-12bf-4f86-9914-37fb274c5d3b'
     title: '8*3'
     front:
-      question: 'Calculate'
+      question: 
       latex: '8 \cdot 3'
     back:
-      answer: 'Result'
+      answer: 
       latex: '24'
   - id: 'd46d5703-5e4c-47a1-8756-4cd9a5c2f97f'
     title: '8*4'
     front:
-      question: 'Calculate'
+      question: 
       latex: '8 \cdot 4'
     back:
-      answer: 'Result'
+      answer: 
       latex: '32'
   - id: '8ea8bcf4-f840-4a7c-bda3-f7530ba0e6d9'
     title: '8*5'
     front:
-      question: 'Calculate'
+      question: 
       latex: '8 \cdot 5'
     back:
-      answer: 'Result'
+      answer: 
       latex: '40'
   - id: '027d20ea-e852-453b-b4fd-f37a11327754'
     title: '8*6'
     front:
-      question: 'Calculate'
+      question: 
       latex: '8 \cdot 6'
     back:
-      answer: 'Result'
+      answer: 
       latex: '48'
   - id: '5fbccad6-e422-40b3-947b-e2b776e9396d'
     title: '8*7'
     front:
-      question: 'Calculate'
+      question: 
       latex: '8 \cdot 7'
     back:
-      answer: 'Result'
+      answer: 
       latex: '56'
   - id: '10df59f7-4692-48cf-bcc7-ef2cc0e53455'
     title: '8*8'
     front:
-      question: 'Calculate'
+      question: 
       latex: '8 \cdot 8'
     back:
-      answer: 'Result'
+      answer: 
       latex: '64'
   - id: '3c7abe37-15ab-4ed5-9254-b28af756784e'
     title: '8*9'
     front:
-      question: 'Calculate'
+      question: 
       latex: '8 \cdot 9'
     back:
-      answer: 'Result'
+      answer: 
       latex: '72'
   - id: '25dda2a2-0d15-47fd-835f-82efeb8d80c9'
     title: '9*2'
     front:
-      question: 'Calculate'
+      question: 
       latex: '9 \cdot 2'
     back:
-      answer: 'Result'
+      answer: 
       latex: '18'
   - id: 'f59570cd-3030-4a27-8011-7dbfb257881d'
     title: '9*3'
     front:
-      question: 'Calculate'
+      question: 
       latex: '9 \cdot 3'
     back:
-      answer: 'Result'
+      answer: 
       latex: '27'
   - id: 'ff545622-93e1-42be-b5c1-93428692028e'
     title: '9*4'
     front:
-      question: 'Calculate'
+      question: 
       latex: '9 \cdot 4'
     back:
-      answer: 'Result'
+      answer: 
       latex: '36'
   - id: '69198622-9c24-4a1d-a5c2-38f3b5cd5839'
     title: '9*5'
     front:
-      question: 'Calculate'
+      question: 
       latex: '9 \cdot 5'
     back:
-      answer: 'Result'
+      answer: 
       latex: '45'
   - id: '9ce752fc-ab47-46cc-9f81-3efe38d3ea7f'
     title: '9*6'
     front:
-      question: 'Calculate'
+      question: 
       latex: '9 \cdot 6'
     back:
-      answer: 'Result'
+      answer: 
       latex: '54'
   - id: 'cb6909cb-0c92-4140-8d04-bb7e444b17b7'
     title: '9*7'
     front:
-      question: 'Calculate'
+      question: 
       latex: '9 \cdot 7'
     back:
-      answer: 'Result'
+      answer: 
       latex: '63'
   - id: '2efe6524-afcc-42c0-8345-2e3746fa20f9'
     title: '9*8'
     front:
-      question: 'Calculate'
+      question: 
       latex: '9 \cdot 8'
     back:
-      answer: 'Result'
+      answer: 
       latex: '72'
   - id: '8f641941-f058-4a24-8562-9e2d6615f7e9'
     title: '9*9'
     front:
-      question: 'Calculate'
+      question: 
       latex: '9 \cdot 9'
     back:
-      answer: 'Result'
+      answer: 
       latex: '81'
