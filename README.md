@@ -1,5 +1,7 @@
 # Simonsen Flashcard App
 
+<img src="lib/logo/simonsenflashcardlogo.PNG" width="100">
+
 A Flutter flashcard app for Android and desktop. Designed to be simpler than Anki by offering fewer configuration options and predefined deck modes.
 
 ## Screenshots
@@ -218,4 +220,4 @@ Every rating is recorded to `deck.stats.yaml` regardless of study mode. This sto
 
 ## Architecture note
 
-Only **Normal mode** is implemented. The architecture is designed to add more modes later. All UI logic is kept platform-specific; all data/business logic lives in `backend/` with no UI imports.
+Two study modes are implemented: **Review** (sequential) and **Leitner Box** (spaced repetition). The architecture is designed to add more modes later. All UI logic is kept platform-specific; all data/business logic lives in `backend/` with no UI imports.
